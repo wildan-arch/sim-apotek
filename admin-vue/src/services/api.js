@@ -1,9 +1,4 @@
-// BASE URL BACKEND (Ubah di sini jika URL backend berubah)
-//
-// const BASE_URL = "http://localhost:5000/api";
-
-// ✅ KODE BARU (Sesuaikan IP dengan laptop kamu, contoh: 192.168.1.15)
-const BASE_URL = "http://192.168.0.107:5000/api";
+const BASE_URL = "https://sim-apotek-production.up.railway.app/api";
 
 // 1. ENDPOINT OBAT
 export const apiObat = {
