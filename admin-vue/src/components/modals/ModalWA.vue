@@ -82,13 +82,7 @@
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
         <button @click="tutupModalKirimWa" type="button" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl text-xs transition cursor-pointer">Batal</button>
 
-        <button
-          type="button"
-          @click="eksekusiKirimWaLaporan"
-          :disabled="isSendingWa || !waStatus?.connected"
-          :class="!waStatus?.connected ? 'bg-slate-300 cursor-not-allowed opacity-60' : 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'"
-          class="w-full px-4 py-2 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition"
-        >
+        <button type="button" @click="eksekusiKirimWaLaporan" class="w-full px-4 py-2 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition">
           <span v-if="isSendingWa" class="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full"></span>
           <span>{{ isSendingWa ? "Mengirim..." : "🚀 Kirim Sekarang" }}</span>
         </button>
@@ -173,8 +167,8 @@ watch(
   },
 );
 
-// FUNGSI EKSEKUSI KIRIM WA
-const eksekusiKirimWaLaporan = async () => {
+// FUNGSI EKSEKUSI KIRIM WA MENGGUNAKAN WA.ME (AMAN TANPA BOT CLOUD)
+const eksekusiKirimWaLaporan = () => {
   // 1. Validasi apakah nomor sudah diisi
   if (!noWaOwner.value) {
     return toast.trigger("⚠️ Masukkan nomor WhatsApp Owner terlebih dahulu!", "warning");
@@ -182,26 +176,33 @@ const eksekusiKirimWaLaporan = async () => {
 
   // 2. Validasi apakah pesan preview sudah ada isinya
   if (!previewPesanWa.value) {
-    return toast.trigger(" Pesan laporan masih kosong!", "warning");
+    return toast.trigger("⚠️ Pesan laporan masih kosong!", "warning");
   }
 
-  isSendingWa.value = true;
   try {
-    // Pastikan parameter dikirim dengan urutan: (nomorTujuan, pesan)
-    const res = await apiWA.kirimPesan(noWaOwner.value, previewPesanWa.value);
-
-    if (res.success || res.status === "success") {
-      toast.trigger(" Laporan berhasil terkirim ke WhatsApp Owner!", "success");
-      localStorage.setItem("noWaOwner", noWaOwner.value);
-      tutupModalKirimWa();
-    } else {
-      toast.trigger(`Gagal: ${res.message || "Terjadi kesalahan pada server"}, silahkan coba lagi!`, "error");
+    // 3. Format nomor ke standar internasional (0812... -> 62812...)
+    let formattedNumber = String(noWaOwner.value).replace(/[^0-9]/g, "");
+    if (formattedNumber.startsWith("0")) {
+      formattedNumber = "62" + formattedNumber.slice(1);
     }
+
+    // 4. Encode teks pesan agar spasi & enter aman dibaca URL
+    const encodedPesan = encodeURIComponent(previewPesanWa.value);
+
+    // 5. Buat URL wa.me dinamis
+    const url = `https://wa.me/${formattedNumber}?text=${encodedPesan}`;
+
+    // 6. Simpan nomor ke localStorage untuk kemudahan berikutnya
+    localStorage.setItem("noWaOwner", noWaOwner.value);
+
+    // 7. Buka WhatsApp di tab baru
+    window.open(url, "_blank");
+
+    toast.trigger("✅ Membuka WhatsApp untuk mengirim laporan...", "success");
+    tutupModalKirimWa();
   } catch (err) {
-    console.error("Gagal kirim WA:", err);
-    toast.trigger("⚠️ Gagal mengirim laporan via WA. Cek koneksi backend.", "error");
-  } finally {
-    isSendingWa.value = false;
+    console.error("Gagal membuka WhatsApp:", err);
+    toast.trigger("⚠️ Gagal memproses tautan WhatsApp.", "error");
   }
 };
 

@@ -192,7 +192,7 @@
         </div>
 
         <!-- 7. STATUS WA APOTEK -->
-        <button
+        <!-- <button
           @click="$emit('bukaPengaturanWA')"
           type="button"
           :title="isCollapsed ? 'Status WA Apotek' : ''"
@@ -203,7 +203,7 @@
         >
           <span class="text-sm shrink-0">📱</span>
           <span v-if="!isCollapsed" class="whitespace-nowrap">Status WA Apotek</span>
-        </button>
+        </button> -->
       </nav>
     </div>
 
