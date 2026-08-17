@@ -62,7 +62,7 @@ const form = ref({
 const handleLogin = async () => {
   try {
     // Sesuaikan URL endpoint backend kamu (misal port 5000 atau sesuai server kamu)
-    const response = await fetch("http://192.168.0.107:5000/api/auth/login", {
+    const response = await fetch("https://sim-apotek-production.up.railway.app/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
