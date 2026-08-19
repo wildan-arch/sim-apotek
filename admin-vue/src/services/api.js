@@ -1,5 +1,4 @@
-// const BASE_URL = "https://sim-apotek-production.up.railway.app/api";
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = "https://sim-apotek-production.up.railway.app/api";
 // 1. ENDPOINT OBAT
 export const apiObat = {
   getAll: () => fetch(`${BASE_URL}/obat`).then((r) => r.json()),
