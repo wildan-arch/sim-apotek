@@ -10,7 +10,7 @@ defineProps({
 
 <template>
   <!-- 1. Tambahkan hover:z-50 agar baris/komponen ini naik ke atas elemen lain saat di-hover -->
-  <div class="group relative inline-block hover:z-50">
+  <div class="group relative inline-block hover:z-99999">
     <!-- <slot /> digunakan agar komponen ini bisa membungkus tombol atau teks apa saja -->
     <slot />
 
@@ -20,7 +20,7 @@ defineProps({
       {{ text }}
 
       <!-- Panah kecil di bawah tooltip (opsional) -->
-      <div class="absolute top-full right-2 border-4 border-transparent border-t-gray-900"></div>
+      <div class="absolute top-full right-3 border-4 border-transparent border-t-gray-900"></div>
     </div>
   </div>
 </template>

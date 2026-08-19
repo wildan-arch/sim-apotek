@@ -19,7 +19,10 @@ router.get("/", async (req, res) => {
       queryFilter.kategori = kategori;
     }
 
-    const daftarObat = await Obat.find(queryFilter).populate("kategori").populate("satuanTerkecil").populate("satuanBesar").populate("tipeBarang");
+    const daftarObat = await Obat.find(queryFilter).populate("kategori").populate("satuanTerkecil").populate("tipeBarang").populate({
+      path: "daftarKonversi.satuanBesar",
+      model: "Satuan",
+    });
 
     res.json(daftarObat);
   } catch (error) {
@@ -28,7 +31,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 🎯 2. GET HISTORI HARGA OBAT BY ID (SUDAH DIPERBAIKI)
+// 2. GET HISTORI HARGA OBAT BY ID
 router.get("/:id/histori-harga", async (req, res) => {
   try {
     const { id } = req.params;
@@ -37,7 +40,6 @@ router.get("/:id/histori-harga", async (req, res) => {
       return res.status(404).json({ message: "Obat tidak ditemukan" });
     }
 
-    // ✅ Kembalikan data historiHarga dari database
     res.json(obat.historiHarga || []);
   } catch (error) {
     console.error("Error GET /api/obat/:id/histori-harga:", error);
@@ -48,7 +50,10 @@ router.get("/:id/histori-harga", async (req, res) => {
 // 3. GET SINGLE OBAT BY ID
 router.get("/:id", async (req, res) => {
   try {
-    const obat = await Obat.findById(req.params.id).populate("kategori").populate("satuanTerkecil").populate("satuanBesar");
+    const obat = await Obat.findById(req.params.id).populate("kategori").populate("satuanTerkecil").populate("tipeBarang").populate({
+      path: "daftarKonversi.satuanBesar",
+      model: "Satuan",
+    });
 
     if (!obat) {
       return res.status(404).json({ message: "Obat tidak ditemukan" });
@@ -66,7 +71,6 @@ router.post("/", async (req, res) => {
   try {
     const obatBaru = new Obat(req.body);
 
-    // Otomatis catat histori harga pertama kali obat dibuat
     if (req.body.hargaBeli || req.body.hargaJual) {
       obatBaru.historiHarga.push({
         tanggal: new Date(),
@@ -78,7 +82,10 @@ router.post("/", async (req, res) => {
     }
 
     const saved = await obatBaru.save();
-    const populated = await Obat.findById(saved._id).populate("kategori").populate("satuanTerkecil").populate("satuanBesar").populate("tipeBarang");
+    const populated = await Obat.findById(saved._id).populate("kategori").populate("satuanTerkecil").populate("tipeBarang").populate({
+      path: "daftarKonversi.satuanBesar",
+      model: "Satuan",
+    });
 
     res.status(201).json(populated);
   } catch (err) {
@@ -138,7 +145,7 @@ router.put("/stok-opname-bulk", async (req, res) => {
   }
 });
 
-// 🎯 6. PUT: Edit / Update Data Obat By ID (DENGAN PENCATATAN HISTORI HARGA)
+// 6. PUT: Edit / Update Data Obat By ID
 router.put("/:id", async (req, res) => {
   try {
     const obat = await Obat.findById(req.params.id);
@@ -146,7 +153,6 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ message: "Obat tidak ditemukan" });
     }
 
-    // Cek apakah ada perubahan harga beli atau harga jual
     const adaPerubahanHarga = (req.body.hargaBeli && Number(req.body.hargaBeli) !== obat.hargaBeli) || (req.body.hargaJual && Number(req.body.hargaJual) !== obat.hargaJual);
 
     if (adaPerubahanHarga) {
@@ -159,12 +165,14 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    // Update field-field data obat dari request body
     Object.assign(obat, req.body);
 
     await obat.save();
 
-    const updatedObat = await Obat.findById(obat._id).populate("kategori").populate("satuanTerkecil").populate("satuanBesar");
+    const updatedObat = await Obat.findById(obat._id).populate("kategori").populate("satuanTerkecil").populate("tipeBarang").populate({
+      path: "daftarKonversi.satuanBesar",
+      model: "Satuan",
+    });
 
     res.json(updatedObat);
   } catch (error) {
@@ -190,6 +198,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 // 8. POST CHECKOUT / TRANSAKSI KASIR
+// 8. POST CHECKOUT / TRANSAKSI KASIR (SUDAH SUPPORT MULTI-SATUAN)
 router.post("/checkout", async (req, res) => {
   try {
     const { items } = req.body;
@@ -205,11 +214,35 @@ router.post("/checkout", async (req, res) => {
         return res.status(404).json({ message: `Obat ID ${item._id} tidak ditemukan` });
       }
 
-      if (obat.stok < item.qty) {
-        return res.status(400).json({ message: `Stok obat ${obat.nama} tidak mencukupi!` });
+      let totalPenguranganStok = 0;
+
+      // Cek apakah satuan yang dipilih kasir adalah satuan terkecil atau satuan besar
+      if (item.satuanPilihan === String(obat.satuanTerkecil)) {
+        // Jika pakai satuan terkecil (misal: Tablet)
+        totalPenguranganStok = Number(item.qty);
+      } else {
+        // Jika pakai satuan besar (misal: Box/Strip), cari nilai konversinya
+        const konversiDitemukan = obat.daftarKonversi.find(
+          (k) => String(k.satuanBesar) === String(item.satuanPilihan)
+        );
+
+        if (!konversiDitemukan) {
+          return res.status(400).json({ message: `Satuan untuk obat ${obat.nama} tidak valid!` });
+        }
+
+        // Hitung total pengurangan ke stok terkecil (Qty beli * nilai konversi)
+        totalPenguranganStok = Number(item.qty) * Number(konversiDitemukan.nilaiKonversi);
       }
 
-      obat.stok -= Number(item.qty);
+      // Validasi ketersediaan stok terkecil
+      if (obat.stok < totalPenguranganStok) {
+        return res.status(400).json({ 
+          message: `Stok obat ${obat.nama} tidak mencukupi! (Sisa stok: ${obat.stok})` 
+        });
+      }
+
+      // Kurangi stok utama di database
+      obat.stok -= totalPenguranganStok;
       await obat.save();
     }
 

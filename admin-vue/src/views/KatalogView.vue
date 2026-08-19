@@ -87,7 +87,7 @@
             <tr v-for="item in paginatedObat" :key="item._id" class="hover:bg-slate-50/80 transition-colors">
               <!-- KODE / RAK -->
               <td class="p-3">
-                <div class="font-mono text-xs text-slate-700 font-bold">{{ item.idObat }}</div>
+                <div class="font-mono text-xs text-slate-700 font-bold uppercase">{{ item.idObat }}</div>
                 <div class="text-[11px] text-teal-600 font-medium mt-0.5">Rak: {{ item.lokasiRak || "-" }}</div>
               </td>
 
@@ -116,7 +116,7 @@
               <!-- BATCH & ED (KONDISIONAL MEDIA NON-MEDIS) -->
               <td class="p-3 text-xs">
                 <template v-if="item.tipeBarang?.butuhDetailMedis !== false">
-                  <div class="font-mono font-bold text-slate-700">{{ item.noBatch || "-" }}</div>
+                  <span class="font-mono font-bold text-slate-700 uppercase italic">{{ item.noBatch || "-" }}</span>
                   <div class="mt-0.5">
                     <span v-if="item.expiredDate" :class="isDekatExpired(item.expiredDate) ? 'text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200' : 'text-slate-600'">
                       ED: {{ formatTanggalSingkat(item.expiredDate) }}
@@ -129,16 +129,18 @@
                 </template>
               </td>
 
-              <!-- KONVERSI SATUAN -->
-              <td class="p-3 text-xs text-slate-600">
-                <span v-if="item.satuanBesar"> 1 {{ item.satuanBesar?.nama }} = {{ item.nilaiKonversi }} {{ item.satuanTerkecil?.nama || "Pcs" }} </span>
-                <span v-else class="font-medium text-slate-700"> 1 {{ item.satuanTerkecil?.nama || "Pcs" }} (Satuan Tunggal) </span>
-                <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                  <span>📋 Opname:</span>
-                  <span v-if="item.terakhirOpname" class="font-medium text-slate-600">
-                    {{ formatTanggalSingkat(item.terakhirOpname) }}
-                  </span>
-                  <span v-else class="italic text-slate-300">Belum pernah</span>
+              <!-- KONVERSI SATUAN (Dinamis dengan perulangan) -->
+              <td class="p-3 text-xs">
+                <div class="space-y-1">
+                  <!-- Satuan Dasar -->
+                  <!-- Daftar Satuan Besar (Dinamis) -->
+                  <div v-if="item.daftarKonversi && item.daftarKonversi.length > 0" class="space-y-0.5 mt-1 border-t pt-1 border-slate-100">
+                    <div v-for="(konv, idx) in item.daftarKonversi" :key="idx" class="text-teal-700 font-bold">• 1 {{ konv.satuanBesar?.nama }} = {{ konv.nilaiKonversi }} {{ item.satuanTerkecil?.nama || "Pcs" }}</div>
+                  </div>
+                </div>
+
+                <div class="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
+                  <span>📋 Opname: {{ item.terakhirOpname ? formatTanggalSingkat(item.terakhirOpname) : "Belum pernah" }}</span>
                 </div>
               </td>
 
@@ -148,27 +150,29 @@
                 <div v-if="item.stok <= item.minStok" class="text-[10px] text-rose-500 font-semibold">Min: {{ item.minStok }}</div>
               </td>
 
-              <!-- HARGA BELI (MODAL ECERAN) -->
+              <!-- HARGA BELI (MODAL) -->
               <td class="p-3">
-                <template v-if="item.satuanBesar && item.hargaBeliSatuanBesar">
-                  <div class="font-bold text-slate-800 text-xs">
-                    Rp {{ formatRupiah(item.hargaBeliSatuanBesar) }} <span class="text-[11px] text-slate-500 font-normal">/ {{ item.satuanBesar?.nama }}</span>
-                  </div>
-                  <div class="text-[10px] text-slate-400 font-normal mt-0.5">(Modal: Rp {{ formatRupiah(item.hargaBeli) }} / {{ item.satuanTerkecil?.nama || "Pcs" }})</div>
-                </template>
-                <template v-else>
-                  <div class="font-bold text-slate-800 text-xs">
-                    Rp {{ formatRupiah(item.hargaBeli) }} <span class="text-[11px] text-slate-500 font-normal">/ {{ item.satuanTerkecil?.nama || "Pcs" }}</span>
-                  </div>
-                </template>
+                <!-- Modal Eceran -->
+                <div class="font-bold text-slate-800 text-xs">
+                  Rp {{ formatRupiah(item.hargaBeli) }} <span class="text-[11px] text-slate-500 font-normal">/ {{ item.satuanTerkecil?.nama || "Pcs" }}</span>
+                </div>
+
+                <!-- Daftar Modal Satuan Besar -->
+                <!-- <div v-if="item.daftarKonversi && item.daftarKonversi.length > 0" class="mt-1 border-t pt-1 border-slate-100 space-y-0.5">
+                  <div v-for="(konv, idx) in item.daftarKonversi" :key="idx" class="text-[10px] text-amber-700 font-semibold">Modal {{ konv.satuanBesar?.nama }}: Rp {{ formatRupiah(konv.hargaBeli || 0) }}</div>
+                </div> -->
               </td>
 
-              <!-- HARGA JUAL ECERAN -->
+              <!-- HARGA JUAL -->
               <td class="p-3">
                 <div class="font-extrabold text-teal-700 text-sm">
                   Rp {{ formatRupiah(item.hargaJual) }} <span class="text-[11px] text-slate-500 font-normal">/ {{ item.satuanTerkecil?.nama || "Pcs" }}</span>
                 </div>
-                <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">+{{ item.marginPersen || 0 }}% Margin</div>
+
+                <!-- Daftar Harga Jual Satuan Besar -->
+                <div v-if="item.daftarKonversi && item.daftarKonversi.length > 0" class="mt-1 border-t pt-1 border-slate-100 space-y-0.5">
+                  <div v-for="(konv, idx) in item.daftarKonversi" :key="idx" class="text-[10px] text-teal-600 font-bold">Jual {{ konv.satuanBesar?.nama }}: Rp {{ formatRupiah(konv.hargaJual || 0) }}</div>
+                </div>
               </td>
 
               <!-- AKSI -->
@@ -296,14 +300,17 @@ const downloadTemplateExcel = () => {
   const templateData = [
     {
       "KODE BARANG (SKU)": "OBT-001",
-      "NAMA BARANG": "Amoxicillin 500mg Strip",
+      "NAMA BARANG": "Allopurinol 100mg",
       KATEGORI: "Obat Keras",
-      "SATUAN TERKECIL": "Strip",
-      "HPP MODAL ECERAN": 10000,
-      "HARGA JUAL ECERAN": 12500,
-      "STOK AWAL": 50,
-      "MINIMUM STOK": 10,
-      "EXPIRED DATE (YYYY-MM-DD)": "2027-12-31",
+      "SATUAN TERKECIL": "Tablet",
+      "HPP MODAL ECERAN": 202,
+      "HARGA JUAL ECERAN": 242,
+      "SATUAN BESAR 1": "Strip",
+      "NILAI KONVERSI 1": 10,
+      "HARGA JUAL SATUAN BESAR 1": 4000,
+      "STOK AWAL": 500,
+      "MINIMUM STOK": 5,
+      "EXPIRED DATE (YYYY-MM-DD)": "2029-06-18",
     },
   ];
   const worksheet = XLSX.utils.json_to_sheet(templateData);
@@ -326,17 +333,31 @@ const handleImportExcel = (event) => {
 
       if (excelJson.length === 0) return alert("⚠️ File Excel yang diunggah kosong!");
 
-      const formattedItems = excelJson.map((row) => ({
-        idObat: row["KODE BARANG (SKU)"] ? formatCapitalize(row["KODE BARANG (SKU)"]).trim() : `OBT-${Date.now()}`,
-        nama: row["NAMA BARANG"] ? formatCapitalize(row["NAMA BARANG"]).trim() : "",
-        kategori: row["KATEGORI"] ? String(row["KATEGORI"]).trim() : "Obat Bebas",
-        satuanTerkecil: row["SATUAN TERKECIL"] ? String(row["SATUAN TERKECIL"]).trim() : "Pcs",
-        hargaBeli: Number(row["HPP MODAL ECERAN"] || 0),
-        hargaJual: Number(row["HARGA JUAL ECERAN"] || 0),
-        stok: Number(row["STOK AWAL"] || 0),
-        minStok: Number(row["MINIMUM STOK"] || 5),
-        expiredDate: row["EXPIRED DATE (YYYY-MM-DD)"] || null,
-      }));
+      const formattedItems = excelJson.map((row) => {
+        const daftarKonversi = [];
+
+        // Cek jika ada data konversi satuan besar di baris Excel
+        if (row["SATUAN BESAR 1"] && row["NILAI KONVERSI 1"]) {
+          daftarKonversi.push({
+            satuanBesar: String(row["SATUAN BESAR 1"]).trim(),
+            nilaiKonversi: Number(row["NILAI KONVERSI 1"] || 1),
+            hargaJual: Number(row["HARGA JUAL SATUAN BESAR 1"] || 0),
+          });
+        }
+
+        return {
+          idObat: row["KODE BARANG (SKU)"] ? formatCapitalize(row["KODE BARANG (SKU)"]).trim() : `OBT-${Date.now()}`,
+          nama: row["NAMA BARANG"] ? formatCapitalize(row["NAMA BARANG"]).trim() : "",
+          kategori: row["KATEGORI"] ? String(row["KATEGORI"]).trim() : "Obat Bebas",
+          satuanTerkecil: row["SATUAN TERKECIL"] ? String(row["SATUAN TERKECIL"]).trim() : "Pcs",
+          hargaBeli: Number(row["HPP MODAL ECERAN"] || 0),
+          hargaJual: Number(row["HARGA JUAL ECERAN"] || 0),
+          stok: Number(row["STOK AWAL"] || 0),
+          minStok: Number(row["MINIMUM STOK"] || 5),
+          expiredDate: row["EXPIRED DATE (YYYY-MM-DD)"] || null,
+          daftarKonversi: daftarKonversi, // 🎯 Masukkan array konversi ke payload
+        };
+      });
 
       const dataValid = formattedItems.filter((item) => item.nama !== "");
       if (dataValid.length === 0) return alert("⚠️ Format header kolom Excel tidak sesuai!");

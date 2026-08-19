@@ -69,8 +69,9 @@
             <table class="w-full text-left border-collapse min-w-212.5">
               <thead>
                 <tr class="bg-slate-100 border-b border-slate-200 text-xs text-slate-600 uppercase">
-                  <th class="p-2.5 w-1/3">Cari / Ketik Nama Barang</th>
+                  <th class="p-2.5 w-1/5">Cari / Ketik Nama Barang</th>
                   <th class="p-2.5 w-28">Satuan Beli</th>
+                  <th class="p-2.5 w-20">Isi (Konv)</th>
                   <th class="p-2.5 w-16 text-center">Qty Beli</th>
                   <th class="p-2.5 w-28">Harga Faktur (Rp)</th>
                   <th class="p-2.5 w-20">Diskon (%)</th>
@@ -97,7 +98,7 @@
                       <div v-for="o in getObatMatches(item.searchQuery)" :key="o._id" @click="pilihObat(index, o)" class="p-2.5 hover:bg-teal-50 cursor-pointer border-b border-slate-100 flex justify-between items-center text-xs capitalize">
                         <div>
                           <div class="font-bold text-slate-800">{{ o.nama }}</div>
-                          <div class="text-[10px] text-slate-400">SKU: {{ o.idObat }}</div>
+                          <div class="text-[10px] text-slate-400 uppercase">SKU: {{ o.idObat }}</div>
                         </div>
                         <span class="text-teal-600 font-semibold text-[11px]">Stok: {{ o.stok }} {{ o.satuanTerkecil?.nama || "" }}</span>
                       </div>
@@ -120,6 +121,7 @@
                       </div>
                     </div>
                   </td>
+                  <!-- Kolom Satuan Beli -->
                   <td class="p-2">
                     <select v-model="item.satuanBeli" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white outline-none focus:ring-2 focus:ring-teal-500">
                       <option value="">Pilih Satuan</option>
@@ -127,6 +129,11 @@
                         {{ s.nama }}
                       </option>
                     </select>
+                  </td>
+
+                  <!-- 🎯 TAMBAHKAN KOLOM INI DI SEBELAHNYA -->
+                  <td class="p-2">
+                    <input type="number" v-model.number="item.qtyKonversi" min="1" placeholder="Isi" class="w-full p-2 border border-slate-300 rounded-lg text-xs text-center outline-none focus:ring-2 focus:ring-teal-500" />
                   </td>
                   <td class="p-2">
                     <input
@@ -184,7 +191,9 @@
                   </td>
                   <td class="p-2 font-bold text-xs text-teal-800">Rp {{ formatRupiah(item.subtotal) }}</td>
                   <td class="p-2 text-center">
-                    <button type="button" @click="hapusBarisObat(index)" :disabled="fakturItems.length === 1" class="text-rose-500 hover:text-rose-700 font-bold disabled:opacity-30 cursor-pointer">✕</button>
+                    <button type="button" @click="hapusBarisObat(index)" :disabled="fakturItems.length === 1" class="text-rose-500 hover:bg-rose-500 hover:text-rose-50 p-1.5 rounded-md font-bold disabled:opacity-50 cursor-pointer">
+                      ✕
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -261,7 +270,7 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { Plus } from "@lucide/vue";
 import { useMasterStore } from "@/stores/useMasterStore.js";
-import { apiPembelian } from "@/services/api.js";
+import { apiPembelian, apiObat } from "@/services/api.js";
 import { formatRupiah } from "@/utils/formatters.js";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import { useToastStore } from "@/stores/toastStore";
@@ -525,48 +534,98 @@ const simpanPendingFaktur = () => {
   tutupModal();
 };
 
+const sinkronisasiKonversiMasterObat = async (itemFaktur) => {
+  console.log("🚀 MENCUBA SINKRONISASI OBAT:", itemFaktur.obatId);
+  try {
+    const responseObat = await apiObat.getById(itemFaktur.obatId);
+    const dataObat = responseObat?.data || responseObat;
+    if (!dataObat) return;
+
+    let daftarKonversi = dataObat.daftarKonversi || [];
+    const satuanBeliFaktur = itemFaktur.satuanBeli;
+    const isiKonversi = Number(itemFaktur.qtyKonversi || 1);
+    const hargaBersihSatuanBesar = Number(itemFaktur.hargaBersih || 0);
+
+    // 1. Hitung modal eceran (selalu dihitung, misal: 22250 / 100 = 222.5 -> dibulatkan jadi 223)
+    const hppEceranBaru = isiKonversi > 0 ? Math.round(hargaBersihSatuanBesar / isiKonversi) : hargaBersihSatuanBesar;
+
+    // 2. Jika ada satuan beli besar yang dipilih, masukkan/update ke daftar konversi
+    if (satuanBeliFaktur && satuanBeliFaktur !== dataObat.satuanTerkecil?.nama) {
+      const indexExist = daftarKonversi.findIndex((k) => (k.satuanBesar?.nama || k.satuanBesar) === satuanBeliFaktur);
+
+      const dataKonversiBaru = {
+        satuanBesar: satuanBeliFaktur,
+        nilaiKonversi: isiKonversi,
+        hargaBeli: hargaBersihSatuanBesar,
+        hargaJual: Number(itemFaktur.hargaJual || 0),
+      };
+
+      if (indexExist >= 0) {
+        daftarKonversi[indexExist] = dataKonversiBaru;
+      } else {
+        daftarKonversi.push(dataKonversiBaru);
+      }
+    }
+
+    // 3. 🎯 LAKUKAN UPDATE KE DATABASE MASTER OBAT DI LUAR BLIF 'IF'
+    // Supaya hargaBeli eceran per kaplet SELALU ter-update setiap simpan faktur!
+    await apiObat.update(itemFaktur.obatId, {
+      ...dataObat,
+      hargaBeli: hppEceranBaru, // Harga modal eceran per kaplet (sudah dibagi)
+      daftarKonversi: daftarKonversi,
+    });
+
+    console.log(`✨ Sukses sinkronisasi: HPP Eceran menjadi Rp ${hppEceranBaru}`);
+  } catch (err) {
+    console.error("Gagal sinkronisasi otomatis konversi:", err);
+  }
+};
+// 🎯 2. Update fungsi simpanFaktur yang kamu punya menjadi seperti ini
 const simpanFaktur = async () => {
   if (fakturItems.value.some((item) => !item.obatId)) {
     return toastStore.trigger("⚠️ Ada barang belum dipilih!", "warning");
   }
 
-  const formattedItems = fakturItems.value.map((item) => ({
-    obat: item.obatId,
-    obatId: item.obatId, // 🎯 Tambahkan obatId agar backend yang pakai key 'obat' maupun 'obatId' tetap bisa baca
-    qty: Number(item.qty || 1),
-    // 🎯 Pastikan mengambil hargaBersih (atau hargaBeli jika hargaBersih kosong)
-    hargaBeli: Number(item.hargaBersih || item.hargaBeli || 0),
-    hargaBeliBaru: Number(item.hargaBersih || item.hargaBeli || 0),
-    hargaJual: Number(item.hargaJual || 0),
-    hargaJualBaru: Number(item.hargaJual || 0),
-    diskonPersen: Number(item.diskonPersen || 0),
-    diskonNominal: Number(item.diskonNominal || 0),
-    hargaBersih: Number(item.hargaBersih || item.hargaBeli || 0),
-    subtotal: Number(item.subtotal || 0),
-    satuanBeli: item.satuanBeli,
-  }));
+  const formattedItems = fakturItems.value.map((item) => {
+    const jumlahBeli = Number(item.qty || 1);
+    const isiKonversi = Number(item.qtyKonversi || 1);
 
-  // 🎯 DEBUG 1: Cek di console browser apa yang dikirim
-  console.log("📦 PAYLOAD DIKIRIM KE BACKEND:", {
-    header: {
-      ...fakturHeader.value,
-      pbf: fakturHeader.value.pabrik, // 🎯 Sertakan 'pbf' agar nama distributor tercatat di histori
-    },
-    items: formattedItems,
-    totalBayar: grandTotalFaktur.value,
+    return {
+      obat: item.obatId,
+      obatId: item.obatId,
+      qty: jumlahBeli * isiKonversi,
+      qtyKonversi: isiKonversi,
+      satuanBeli: item.satuanBeli || "",
+      hargaBeli: Number(item.hargaBersih || item.hargaBeli || 0),
+      hargaBeliBaru: Number(item.hargaBersih || item.hargaBeli || 0),
+      hargaJual: Number(item.hargaJual || 0),
+      hargaJualBaru: Number(item.hargaJual || 0),
+      diskonPersen: Number(item.diskonPersen || 0),
+      diskonNominal: Number(item.diskonNominal || 0),
+      hargaBersih: Number(item.hargaBersih || item.hargaBeli || 0),
+      subtotal: Number(item.subtotal || 0),
+    };
   });
 
   try {
+    // Simpan faktur pembelian ke backend seperti biasa
     await apiPembelian.simpanFaktur({
       header: {
         ...fakturHeader.value,
-        pbf: fakturHeader.value.pabrik, // 🎯 Sertakan 'pbf'
+        pbf: fakturHeader.value.pabrik,
       },
       items: formattedItems,
       totalBayar: grandTotalFaktur.value,
     });
 
-    toastStore.trigger("✅ Faktur PBF berhasil disimpan!", "success");
+    // 🚀 Lakukan sinkronisasi otomatis satuan baru ke master obat di latar belakang
+    for (const item of fakturItems.value) {
+      if (item.obatId && item.satuanBeli) {
+        await sinkronisasiKonversiMasterObat(item);
+      }
+    }
+
+    toastStore.trigger("✅ Faktur PBF & Satuan Baru berhasil disimpan & disinkronkan!", "success");
     bersihkanDraftLokal();
     tutupModal();
     emit("suksesSimpan");
@@ -575,7 +634,6 @@ const simpanFaktur = async () => {
     toastStore.trigger(`❌ Gagal menyimpan faktur: ${error.message || "Terjadi kesalahan"}`, "error");
   }
 };
-
 const tutupModal = () => {
   emit("update:modalFakturAktif", false);
 };

@@ -27,8 +27,7 @@
 
       <!-- FORM UTAMA -->
       <form @submit.prevent="simpanBarangMaster" class="p-6 space-y-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
-        <!-- 🎯 SECTION BARU: TIPE BARANG (DINAMIS & REAKTIF) -->
-        <!-- SECTION: TIPE BARANG (DENGAN TOMBOL + DINAMIS) -->
+        <!-- SECTION: TIPE BARANG -->
         <div class="space-y-1.5">
           <label class="block text-xs font-bold text-slate-700"> Tipe Barang <span class="text-rose-500">*</span> </label>
           <div class="flex gap-2">
@@ -51,7 +50,6 @@
               </div>
             </div>
 
-            <!-- 🎯 TOMBOL + UNTUK TAMBAH TIPE BARANG -->
             <button
               type="button"
               @click="modalTambahTipeBarang = true"
@@ -131,7 +129,7 @@
           </div>
         </div>
 
-        <!-- 🎯 SECTION 3: NO BATCH & EXPIRED DATE (HANYA UNTUK TIPE MEDIS/OBAT) -->
+        <!-- SECTION 3: NO BATCH & EXPIRED DATE (KONDISIONAL MEDIS) -->
         <div v-if="isButuhDetailMedis" class="bg-amber-50/50 p-4 rounded-xl border border-amber-200/80 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div class="space-y-1.5">
             <label class="block text-xs font-bold text-amber-900">No. Batch</label>
@@ -153,117 +151,18 @@
           </div>
         </div>
 
-        <!-- SECTION 4: SATUAN & KONVERSI KEMASAN -->
-        <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-500"> 📦 Satuan & Konversi Kemasan </span>
-            <span class="text-[11px] text-slate-400 font-medium">Atur tingkat kemasan barang</span>
-          </div>
+        <!-- ========================================================= -->
+        <!-- 🎯 SECTION 4 & 5: HARGA BELI & HARGA JUAL (DIPINDAH KE ATAS) -->
+        <!-- ========================================================= -->
 
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-            <!-- 1. SATUAN ECERAN (Span 5) -->
-            <div class="md:col-span-5 space-y-1.5">
-              <label class="block text-xs font-bold text-slate-700"> Satuan Eceran <span class="text-rose-500">*</span> </label>
-              <div class="flex gap-1.5">
-                <div class="relative flex-1">
-                  <select
-                    v-model="barangForm.satuanTerkecil"
-                    required
-                    class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition appearance-none cursor-pointer capitalize"
-                  >
-                    <option value="" disabled selected>-- Pilih Satuan --</option>
-                    <option v-for="s in satuanSorted" :key="s._id || s.id" :value="s._id || s.id">
-                      {{ formatCapitalize(s.nama) }}
-                    </option>
-                  </select>
-                  <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  @click="
-                    targetSatuanType = 'eceran';
-                    satuanBaruNama = '';
-                    modalTambahSatuan = true;
-                  "
-                  class="px-3 bg-white hover:bg-teal-50 text-teal-700 font-bold text-base rounded-xl border border-slate-300 hover:border-teal-500 shadow-sm transition active:scale-95 flex items-center justify-center cursor-pointer"
-                  title="Tambah Satuan Eceran Baru"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <!-- 2. SATUAN BESAR (Span 5) -->
-            <div class="md:col-span-5 space-y-1.5">
-              <label class="block text-xs font-bold text-slate-700"> Satuan Besar <span class="text-slate-400 font-normal">(Opsional)</span> </label>
-              <div class="flex gap-1.5">
-                <div class="relative flex-1">
-                  <select
-                    v-model="barangForm.satuanBesar"
-                    class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition appearance-none cursor-pointer capitalize"
-                  >
-                    <option value="">Tidak Ada (Khusus Eceran)</option>
-                    <option v-for="s in satuanSorted" :key="s._id || s.id" :value="s._id || s.id">
-                      {{ formatCapitalize(s.nama) }}
-                    </option>
-                  </select>
-                  <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  @click="
-                    targetSatuanType = 'besar';
-                    satuanBaruNama = '';
-                    modalTambahSatuan = true;
-                  "
-                  class="px-3 bg-white hover:bg-teal-50 text-teal-700 font-bold text-base rounded-xl border border-slate-300 hover:border-teal-500 shadow-sm transition active:scale-95 flex items-center justify-center cursor-pointer"
-                  title="Tambah Satuan Besar Baru"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <!-- 3. ISI KONVERSI (Span 2) -->
-            <div class="md:col-span-2 space-y-1.5">
-              <label class="block text-xs font-bold text-slate-700 truncate" title="Isi Konversi">Isi Konversi</label>
-              <input
-                type="number"
-                min="1"
-                v-model.number="barangForm.nilaiKonversi"
-                placeholder="1"
-                class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-center text-slate-800 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 5: MODAL, HPP, MARGIN & HARGA JUAL -->
+        <!-- HPP, MARGIN & HARGA JUAL ECERAN -->
         <div class="bg-teal-50/60 p-4 rounded-xl border border-teal-100 space-y-3.5">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-teal-900"> 💰 Pengaturan Harga & Modal Eceran </span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="space-y-1.5">
-              <label class="block text-xs font-bold text-slate-700">Modal Satuan Besar (Rp)</label>
-              <input
-                type="number"
-                v-model.number="barangForm.hargaBeliSatuanBesar"
-                @input="hitungDariMargin"
-                placeholder="0"
-                class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
-              />
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="block text-xs font-bold text-slate-700"> HPP Modal Eceran (Rp) <span class="text-rose-500">*</span> </label>
+              <MyTooltip text="Modal Satuan Terkecil (Per Biji/Tablet/Pcs)">
+                <label class="block text-xs font-bold text-slate-700"> HPP Modal Per Unit / Tablet (Eceran) <span class="text-rose-500">*</span> </label>
+              </MyTooltip>
               <input
                 type="number"
                 v-model.number="barangForm.hargaBeli"
@@ -288,7 +187,9 @@
           </div>
 
           <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-teal-900"> Harga Jual Eceran (Rp) <span class="text-rose-500">*</span> </label>
+            <MyTooltip text="Harga Jual Satuan Terkecil (Per Biji/Tablet/Pcs)">
+              <label class="block text-xs font-bold text-teal-900"> Harga Jual Eceran (Rp) <span class="text-rose-500">*</span> </label>
+            </MyTooltip>
             <div class="relative">
               <input
                 type="number"
@@ -300,6 +201,104 @@
               />
             </div>
           </div>
+        </div>
+
+        <!-- SATUAN & KONVERSI KEMASAN DINAMIS (DENGAN HARGA BELI & JUAL DI DALAMNYA) -->
+        <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500"> 📦 Satuan Eceran & Konversi Satuan Besar </span>
+            <button type="button" @click="tambahBarisKonversi" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1 cursor-pointer">
+              + Tambah Satuan Besar
+            </button>
+          </div>
+
+          <!-- Satuan Dasar / Eceran (Wajib) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-200">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700">
+                Satuan Eceran (Terkecil) <span class="text-rose-500">*</span><br />
+                <span class="text-[10px] font-normal text-slate-500 block sm:inline sm:ml-1">(Satuan unit terkecil, misal: Tablet / Biji / Pcs)</span></label
+              >
+              <div class="flex gap-1.5">
+                <div class="relative flex-1">
+                  <select
+                    v-model="barangForm.satuanTerkecil"
+                    required
+                    class="w-full pl-3 pr-8 py-2 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition appearance-none cursor-pointer capitalize"
+                  >
+                    <option value="" disabled selected>-- Pilih Satuan Eceran --</option>
+                    <option v-for="s in satuanSorted" :key="s._id || s.id" :value="s._id || s.id">
+                      {{ formatCapitalize(s.nama) }}
+                    </option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  @click="
+                    targetSatuanType = 'eceran';
+                    modalTambahSatuan = true;
+                  "
+                  class="px-2.5 bg-white hover:bg-teal-50 text-teal-700 font-bold rounded-xl border border-slate-300 shadow-sm"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daftar Konversi Satuan Besar Dinamis (Box, Strip, dll.) -->
+          <div v-for="(konv, index) in barangForm.daftarKonversi" :key="index" class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs space-y-3 relative">
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] font-extrabold text-teal-800 uppercase">Satuan Besar #{{ index + 1 }}</span>
+              <button type="button" @click="hapusBarisKonversi(index)" class="text-rose-500 hover:text-rose-700 text-xs font-bold px-2 py-0.5 bg-rose-50 rounded-md cursor-pointer">Hapus Satuan</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-slate-700">Pilih Satuan Besar</label>
+                <select v-model="konv.satuanBesar" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 outline-none focus:ring-1 focus:ring-teal-500">
+                  <option value="" disabled>-- Pilih Satuan --</option>
+                  <option v-for="s in satuanSorted" :key="s._id || s.id" :value="s._id || s.id">
+                    {{ formatCapitalize(s.nama) }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-slate-700">Isi / Nilai Konversi</label>
+                <input
+                  type="number"
+                  min="1"
+                  v-model.number="konv.nilaiKonversi"
+                  placeholder="Misal: 10"
+                  class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-800 outline-none focus:ring-1 focus:ring-teal-500"
+                />
+              </div>
+
+              <!-- MODAL SPESIFIK UNTUK SATUAN BESAR INI -->
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-amber-900">Modal Satuan Ini (Rp)</label>
+                <input
+                  type="number"
+                  :value="Number(barangForm.hargaBeli || 0) * Number(konv.nilaiKonversi || 1)"
+                  readonly
+                  class="w-full p-2 bg-amber-50/50 border border-amber-300 rounded-lg text-xs font-bold text-amber-900 outline-none cursor-not-allowed"
+                />
+              </div>
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-teal-800">Harga Jual Satuan Ini (Rp)</label>
+                <input
+                  type="number"
+                  min="0"
+                  v-model.number="konv.hargaJual"
+                  placeholder="Harga jual khusus"
+                  class="w-full p-2 bg-teal-50/50 border border-teal-300 rounded-lg text-xs font-extrabold text-teal-900 outline-none focus:ring-1 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div v-if="!barangForm.daftarKonversi || barangForm.daftarKonversi.length === 0" class="text-center py-2 text-slate-400 text-xs">Belum ada satuan besar ditambahkan. Barang hanya dijual secara eceran.</div>
         </div>
 
         <!-- SECTION 6: STOK & STOK MINIMUM -->
@@ -390,6 +389,7 @@
       </form>
     </div>
   </div>
+
   <!-- POPUP TAMBAH TIPE BARANG DINAMIS -->
   <div v-if="modalTambahTipeBarang" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-60 p-4">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-sm p-6 space-y-4">
@@ -408,7 +408,6 @@
           />
         </div>
 
-        <!-- OPSI MEMBUTUHKAN NO BATCH / EXP DATE -->
         <div class="flex items-center gap-2 pt-1">
           <input type="checkbox" id="butuhMedisCheck" v-model="tipeBaruButuhMedis" class="w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500 cursor-pointer" />
           <label for="butuhMedisCheck" class="text-xs font-medium text-slate-700 cursor-pointer select-none"> Butuh Detail Medis (No. Batch & Expired Date) </label>
@@ -427,7 +426,7 @@
 import { ref, watch, computed } from "vue";
 import MyTooltip from "@/components/MyTooltip.vue";
 import { useMasterStore } from "@/stores/useMasterStore.js";
-import { apiObat, apiKategori, apiSatuan } from "@/services/api.js";
+import { apiObat, apiKategori, apiSatuan, apiTipeBarang } from "@/services/api.js";
 import { useToastStore } from "@/stores/toastStore";
 
 const toastStore = useToastStore();
@@ -438,7 +437,6 @@ const props = defineProps({
 
 const emit = defineEmits(["update:isOpen", "suksesSimpan"]);
 
-// MENGAMBIL STORE MASTER DATA (Daftar Kategori, Satuan, dan Tipe Barang)
 const { masterKategori, masterSatuan, masterTipeBarang, loadAllData } = useMasterStore();
 
 const isEditMode = ref(false);
@@ -449,7 +447,6 @@ const kategoriBaruNama = ref("");
 const satuanBaruNama = ref("");
 const targetSatuanType = ref("eceran");
 
-// FORMAT CAPITALIZE HELPER (Menggunakan Utils atau Local Fallback)
 const formatCapitalize = (str) => {
   if (!str) return "";
   return String(str)
@@ -463,9 +460,7 @@ const barangForm = ref({
   nama: "",
   kategori: "",
   satuanTerkecil: "",
-  satuanBesar: "",
-  nilaiKonversi: 1,
-  hargaBeliSatuanBesar: 0,
+  daftarKonversi: [],
   hargaBeli: 0,
   marginPersen: 20,
   hargaJual: 0,
@@ -476,13 +471,27 @@ const barangForm = ref({
   expiredDate: "",
 });
 
-// DEFAULT FALLBACK JIKA MASTER TIPE BELUM LOADED
+const tambahBarisKonversi = () => {
+  if (!barangForm.value.daftarKonversi) {
+    barangForm.value.daftarKonversi = [];
+  }
+  barangForm.value.daftarKonversi.push({
+    satuanBesar: "",
+    nilaiKonversi: 1,
+    hargaBeli: 0, // 🎯 Inisialisasi harga beli satuan besar
+    hargaJual: 0,
+  });
+};
+
+const hapusBarisKonversi = (index) => {
+  barangForm.value.daftarKonversi.splice(index, 1);
+};
+
 const defaultTipeList = [
   { _id: "OBAT", kode: "OBAT", nama: "Obat & Medis", butuhDetailMedis: true },
   { _id: "FMCG", kode: "FMCG", nama: "Minimarket / General", butuhDetailMedis: false },
 ];
 
-// 🎯 COMPUTED: TIPE BARANG SORTED & DINAMIS
 const tipeBarangSorted = computed(() => {
   const source = masterTipeBarang && masterTipeBarang.value && masterTipeBarang.value.length > 0 ? masterTipeBarang.value : defaultTipeList;
 
@@ -493,22 +502,19 @@ const tipeBarangSorted = computed(() => {
   });
 });
 
-// 🎯 COMPUTED: CEK APABILAH TIPE TERPILIH MEMBUTUHKAN DETAIL MEDIS
 const isButuhDetailMedis = computed(() => {
-  if (!barangForm.value.tipeBarang) return true; // Default tampilkan
+  if (!barangForm.value.tipeBarang) return true;
   const currentTipe = tipeBarangSorted.value.find((t) => (t._id || t.kode) === barangForm.value.tipeBarang);
   return currentTipe ? currentTipe.butuhDetailMedis !== false : true;
 });
 
-// HANDLER KETIKA TIPE BARANG BERUBAH
 const onTipeBarangChange = () => {
   if (!isButuhDetailMedis.value) {
-    // Kosongkan data medis jika memilih tipe Non-Medis/FMCG
     barangForm.value.noBatch = "";
     barangForm.value.expiredDate = "";
   }
 };
-// Fungsi Helper Ekstraksi ID yang Aman
+
 const extractId = (field) => {
   if (!field) return "";
   if (typeof field === "object") {
@@ -517,37 +523,36 @@ const extractId = (field) => {
   return String(field);
 };
 
-// Watcher Gabungan (Memantau isOpen & editData sekaligus)
 watch(
   [() => props.isOpen, () => props.editData],
   ([newIsOpen, newEditData]) => {
     if (newIsOpen) {
+      const savedDraft = localStorage.getItem("draf_master_barang");
       const firstTipeId = tipeBarangSorted.value[0]?._id || tipeBarangSorted.value[0]?.kode || "";
 
       if (newEditData) {
-        // MODE EDIT DATA
         isEditMode.value = true;
         editId.value = newEditData._id;
 
-        const konversi = newEditData.nilaiKonversi || 1;
         const hppEceran = newEditData.hargaBeli || 0;
-
-        // Ekstrak ID Tipe Barang
         const idTipeExtracted = extractId(newEditData.tipeBarang);
-
-        // 🎯 Cari ID Tipe "Obat & Medis" jika data lama di DB masih kosong
         const tipeObatDefault = tipeBarangSorted.value.find((t) => t.nama.toLowerCase().includes("obat"))?._id || "";
 
         barangForm.value = {
-          // ✅ JIKA idTipeExtracted ADA PAKAI ITU. JIKA KOSONG, PAKAI TIPE OBAT (BUKAN FIRST TIPE / BABY CARE)
           tipeBarang: idTipeExtracted || tipeObatDefault || "",
           idObat: newEditData.idObat || "",
           nama: newEditData.nama || "",
           kategori: extractId(newEditData.kategori) || masterKategori.value[0]?._id || "",
           satuanTerkecil: extractId(newEditData.satuanTerkecil) || masterSatuan.value[0]?._id || "",
-          satuanBesar: extractId(newEditData.satuanBesar) || "",
-          nilaiKonversi: konversi,
-          hargaBeliSatuanBesar: hppEceran * konversi,
+
+          // 🎯 Memetakan array daftar konversi beserta hargaBeli (modal satuan besar) masing-masing
+          daftarKonversi: (newEditData.daftarKonversi || []).map((k) => ({
+            satuanBesar: extractId(k.satuanBesar),
+            nilaiKonversi: k.nilaiKonversi || 1,
+            hargaBeli: k.hargaBeli || 0,
+            hargaJual: k.hargaJual || 0,
+          })),
+
           hargaBeli: hppEceran,
           marginPersen: newEditData.marginPersen || 20,
           hargaJual: newEditData.hargaJual || 0,
@@ -557,8 +562,13 @@ watch(
           noBatch: newEditData.noBatch || "",
           expiredDate: newEditData.expiredDate ? new Date(newEditData.expiredDate).toISOString().split("T")[0] : "",
         };
+      } else if (savedDraft && !newEditData) {
+        try {
+          barangForm.value = JSON.parse(savedDraft);
+        } catch (e) {
+          console.error("Gagal memuat draf:", e);
+        }
       } else {
-        // MODE TAMBAH BARANG BARU
         isEditMode.value = false;
         editId.value = null;
 
@@ -568,9 +578,7 @@ watch(
           nama: "",
           kategori: masterKategori.value[0]?._id || "",
           satuanTerkecil: masterSatuan.value[0]?._id || "",
-          satuanBesar: "",
-          nilaiKonversi: 1,
-          hargaBeliSatuanBesar: 0,
+          daftarKonversi: [],
           hargaBeli: 0,
           marginPersen: 20,
           hargaJual: 0,
@@ -586,14 +594,12 @@ watch(
   { immediate: true, deep: true },
 );
 
-// LOGIKA TIPE BARANG BARU
 const modalTambahTipeBarang = ref(false);
 const tipeBaruNama = ref("");
 const tipeBaruButuhMedis = ref(false);
 
 const simpanTipeBarangDinamis = async () => {
   const inputNama = tipeBaruNama.value.trim();
-
   if (!inputNama) {
     toastStore.trigger("Nama tipe barang tidak boleh kosong!", "warning");
     return;
@@ -604,27 +610,18 @@ const simpanTipeBarangDinamis = async () => {
       nama: inputNama,
       butuhDetailMedis: tipeBaruButuhMedis.value,
     };
-
-    // 1. Eksekusi API Simpan
     const res = await apiTipeBarang.create(payload);
-
-    // 2. Antisipasi jika response dibungkus { data: ... } atau langsung object
     const tipeBaru = res?.data || res;
 
-    // Jika server merespon dengan error status (seperti 400/500)
     if (res?.message && !tipeBaru._id && !tipeBaru.kode) {
       throw new Error(res.message);
     }
 
-    // 3. Refresh Master Store
     await loadAllData();
-
-    // 4. Set nilai otomatis di dropdown form
     if (tipeBaru) {
       barangForm.value.tipeBarang = tipeBaru._id || tipeBaru.kode;
     }
 
-    // 5. Reset State Form Popup
     tipeBaruNama.value = "";
     tipeBaruButuhMedis.value = false;
     modalTambahTipeBarang.value = false;
@@ -635,13 +632,10 @@ const simpanTipeBarangDinamis = async () => {
     toastStore.trigger(`❌ Gagal menambah tipe barang: ${err.message || "Terjadi kesalahan"}`, "error");
   }
 };
-const hitungDariMargin = () => {
-  const hargaBox = Number(barangForm.value.hargaBeliSatuanBesar || 0);
-  const konversi = Number(barangForm.value.nilaiKonversi || 1);
-  const margin = Number(barangForm.value.marginPersen || 0);
 
-  const hppEceran = konversi > 0 && hargaBox > 0 ? hargaBox / konversi : Number(barangForm.value.hargaBeli || 0);
-  barangForm.value.hargaBeli = Math.round(hppEceran);
+const hitungDariMargin = () => {
+  const margin = Number(barangForm.value.marginPersen || 0);
+  const hppEceran = Number(barangForm.value.hargaBeli || 0);
 
   if (hppEceran > 0) {
     barangForm.value.hargaJual = Math.round(hppEceran + hppEceran * (margin / 100));
@@ -663,19 +657,30 @@ const hitungDariHargaJual = () => {
 const simpanBarangMaster = async () => {
   const payload = {
     ...barangForm.value,
-    satuanBesar: barangForm.value.satuanBesar || null,
     satuanTerkecil: barangForm.value.satuanTerkecil || null,
     kategori: barangForm.value.kategori || null,
     tipeBarang: barangForm.value.tipeBarang || null,
+
+    // 🎯 Pastikan hargaBeli satuan besar dihitung otomatis di sini sebelum dikirim ke backend
+    daftarKonversi: (barangForm.value.daftarKonversi || []).map((k) => {
+      const hppEceran = Number(barangForm.value.hargaBeli || 0);
+      const konversi = Number(k.nilaiKonversi || 1);
+      return {
+        satuanBesar: k.satuanBesar || null,
+        nilaiKonversi: konversi,
+        hargaBeli: hppEceran * konversi, // Otomatis terhitung akurat!
+        hargaJual: Number(k.hargaJual || 0),
+      };
+    }),
   };
 
   try {
     if (isEditMode.value) {
       await apiObat.update(editId.value, payload);
-      toastStore.trigger(" Data barang berhasil diperbarui!", "success");
+      toastStore.trigger("Data barang berhasil diperbarui!", "success");
     } else {
       await apiObat.create(payload);
-      toastStore.trigger(" Barang baru berhasil ditambahkan!", "success");
+      toastStore.trigger("Barang baru berhasil ditambahkan!", "success");
     }
     tutupModal();
     loadAllData();
@@ -700,14 +705,12 @@ const simpanKategoriDinamis = async () => {
 
 const simpanSatuanDinamis = async () => {
   const inputNama = satuanBaruNama.value.trim();
-
   if (!inputNama) {
     toastStore.trigger("Nama satuan tidak boleh kosong!", "warning");
     return;
   }
 
   const sudahAda = masterSatuan.value.some((s) => s.nama.trim().toLowerCase() === inputNama.toLowerCase());
-
   if (sudahAda) {
     toastStore.trigger(`⚠️ Satuan "${inputNama}" sudah ada di daftar!`, "warning");
     return;

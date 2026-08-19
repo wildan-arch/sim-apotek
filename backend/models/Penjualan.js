@@ -8,6 +8,7 @@ const penjualanSchema = new mongoose.Schema(
         obat: { type: mongoose.Schema.Types.ObjectId, ref: "Obat" },
         nama: { type: String, required: true },
         qty: { type: Number, required: true },
+        satuan: { type: mongoose.Schema.Types.ObjectId, ref: "Satuan" },
         hargaBeli: { type: Number, required: true }, // HPP per item
         hargaJual: { type: Number, required: true }, // Harga Jual per item
         subtotal: { type: Number, required: true },

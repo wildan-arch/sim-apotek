@@ -153,7 +153,7 @@
                             </span>
                             <span>{{ item.obat?.nama || item.nama || "-" }}</span>
                           </td>
-                          <td class="p-2 text-center font-bold">{{ item.qty }} {{ item.satuan || "Pcs" }}</td>
+                          <td class="p-2 text-center font-bold">{{ item.qty }} {{ item.satuanBeli || item.satuan || "-" }}</td>
                           <td class="p-2 text-right text-slate-600">Rp {{ formatRupiah(item.hargaBeli || item.harga) }}</td>
                           <td class="p-2 text-right font-bold text-slate-900">Rp {{ formatRupiah(item.qty * (item.hargaBeli || item.harga || 0)) }}</td>
                         </tr>

@@ -66,7 +66,7 @@ export function useMasterStore() {
     daftarObat,
     masterKategori,
     masterSatuan,
-    masterTipeBarang, // 👈 Export masterTipeBarang ke komponen UI
+    masterTipeBarang, 
     rekapHutang,
     historiHutang,
     noWaOwner,

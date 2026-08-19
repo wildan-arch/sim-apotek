@@ -98,6 +98,7 @@ router.get("/analisis-pergerakan", async (req, res) => {
 });
 
 // 1. SIMPAN TRANSAKSI KASIR BARU & POTONG STOK
+// 1. SIMPAN TRANSAKSI KASIR BARU & POTONG STOK (SUPPORT MULTI-SATUAN)
 router.post("/", async (req, res) => {
   try {
     const { items, diskon, metodeBayar, bayar, kembali, tglTransaksi } = req.body;
@@ -121,38 +122,69 @@ router.post("/", async (req, res) => {
         return res.status(404).json({ message: `Obat (${item.nama || targetId}) tidak ditemukan di katalog!` });
       }
 
-      if (obat.stok < item.qty) {
-        return res.status(400).json({ message: `Stok ${obat.nama} tidak mencukupi! Sisa: ${obat.stok}` });
+      let itemHargaJual = 0;
+      let itemHppSatuan = 0;
+      let totalPenguranganStok = 0;
+      let namaSatuanDigunakan = "";
+
+      // 🎯 CEK APAKAH MENGGUNAKAN SATUAN BESAR DARI daftarKonversi ATAU SATUAN DASAR
+      const pilihanSatuan = item.satuanPilihan || item.satuan; // ID Satuan atau Nama Satuan
+
+      let konversiMatch = null;
+      if (pilihanSatuan && obat.daftarKonversi && obat.daftarKonversi.length > 0) {
+        konversiMatch = obat.daftarKonversi.find((k) => k._id.toString() === pilihanSatuan.toString() || k.satuanBesar.toString() === pilihanSatuan.toString());
       }
 
-      const itemHpp = Number(obat.hargaBeli || 0);
-      const itemHargaJual = Number(item.hargaJual || obat.hargaJual);
-      if (itemHargaJual < itemHpp) {
+      if (konversiMatch) {
+        // JIKA KASIR MEMILIH SATUAN BESAR (Misal: Box / Strip)
+        namaSatuanDigunakan = konversiMatch.satuanBesar;
+        itemHargaJual = Number(item.hargaJual || konversiMatch.hargaJual);
+
+        // Asumsi HPP proporsional atau dikali nilai konversi dari HPP dasar
+        const hppDasar = Number(obat.hargaBeli || 0);
+        itemHppSatuan = konversiMatch.hargaBeli > 0 ? Number(konversiMatch.hargaBeli) : hppDasar * konversiMatch.nilaiKonversi;
+
+        // Total pengurangan stok ke satuan terkecil (misal beli 2 Box, isi 10 -> kurangi 20 tablet)
+        totalPenguranganStok = Number(item.qty) * Number(konversiMatch.nilaiKonversi);
+      } else {
+        // JIKA KASIR MEMILIH SATUAN DASAR / TERKECIL (Misal: Tablet / Pcs)
+        namaSatuanDigunakan = obat.satuanTerkecil;
+        itemHargaJual = Number(item.hargaJual || obat.hargaJual);
+        itemHppSatuan = Number(obat.hargaBeli || 0);
+
+        totalPenguranganStok = Number(item.qty);
+      }
+
+      // Validasi Stok Terkecil
+      if (obat.stok < totalPenguranganStok) {
         return res.status(400).json({
-          message: `Transaksi dibatalkan! Harga jual ${obat.nama} (Rp${itemHargaJual}) lebih kecil dari harga modal (Rp${itemHpp}).`,
+          message: `Stok ${obat.nama} tidak mencukupi! Sisa stok terkecil: ${obat.stok}, dibutuhkan: ${totalPenguranganStok}`,
         });
       }
 
-      // Potong Stok Catalog
-      obat.stok = Number(obat.stok) - Number(item.qty);
-
-      if (item.hargaJual && Number(item.hargaJual) !== obat.hargaJual) {
-        obat.hargaJual = Number(item.hargaJual);
+      // Validasi harga jual tidak boleh di bawah HPP
+      if (itemHargaJual < itemHppSatuan) {
+        return res.status(400).json({
+          message: `Transaksi dibatalkan! Harga jual ${obat.nama} (Rp${itemHargaJual}) lebih kecil dari harga modal (Rp${itemHppSatuan}).`,
+        });
       }
 
+      // Potong Stok Utama (Stok Terkecil)
+      obat.stok = Number(obat.stok) - totalPenguranganStok;
       await obat.save();
 
       const itemSubtotal = itemHargaJual * Number(item.qty);
-      const itemLaba = (itemHargaJual - itemHpp) * Number(item.qty);
+      const itemLaba = (itemHargaJual - itemHppSatuan) * Number(item.qty);
 
       subtotal += itemSubtotal;
-      totalHpp += itemHpp * Number(item.qty);
+      totalHpp += itemHppSatuan * Number(item.qty);
 
       itemsDetail.push({
         obat: obat._id,
         nama: obat.nama,
         qty: Number(item.qty),
-        hargaBeli: itemHpp,
+        satuan: namaSatuanDigunakan,
+        hargaBeli: itemHppSatuan,
         hargaJual: itemHargaJual,
         subtotal: itemSubtotal,
         labaKotorItem: itemLaba,
@@ -179,7 +211,6 @@ router.post("/", async (req, res) => {
 
     await penjualanBaru.save();
 
-    // 🎯 AMBIL ULANG DENGAN POPULATE OBAT & TIPE BARANG DARI KATALOG
     const populated = await Penjualan.findById(penjualanBaru._id).populate({
       path: "items.obat",
       populate: { path: "tipeBarang" },
@@ -215,6 +246,11 @@ router.get("/laporan", verifyOwner, async (req, res) => {
       .populate({
         path: "items.obat",
         populate: { path: "tipeBarang" },
+      })
+      // 🎯 TAMBAHKAN POPULATE SATUAN DI SINI
+      .populate({
+        path: "items.satuan",
+        model: "Satuan",
       })
       .sort({ createdAt: -1 });
 

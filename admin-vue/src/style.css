@@ -1,20 +1,3 @@
 /* 1. Wajib di paling atas! */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 @import "tailwindcss";
-
-/* 2. Style bawaan & custom */
-@layer base {
-  * {
-    font-family:
-      "Inter",
-      system-ui,
-      -apple-system,
-      sans-serif;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-/* 3. Style penyembunyian struk saat di monitor */
-#area-struk {
-  display: none;
-}

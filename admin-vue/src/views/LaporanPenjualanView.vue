@@ -155,7 +155,7 @@
                             </span>
                             <span>{{ item.nama }}</span>
                           </td>
-                          <td class="p-2 text-center font-bold">{{ item.qty }} {{ item.satuan || "Pcs" }}</td>
+                          <td class="p-2 text-center font-bold">{{ item.qty }} {{ item.satuan?.nama || "Pcs" }}</td>
                           <td class="p-2 text-right text-slate-600">Rp {{ formatRupiah(item.hargaJual || item.harga) }}</td>
                           <td class="p-2 text-right font-bold text-slate-900">Rp {{ formatRupiah(item.qty * (item.hargaJual || item.harga || 0)) }}</td>
                         </tr>

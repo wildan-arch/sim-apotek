@@ -89,9 +89,28 @@
           </div>
 
           <div v-else class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-            <div v-for="(item, idx) in keranjang" :key="idx" class="p-2.5 bg-slate-50 border border-slate-100 rounded-lg flex justify-between items-center text-xs">
+            <div v-for="(item, idx) in keranjang" :key="idx" class="p-2.5 bg-slate-50 border border-slate-100 rounded-lg flex justify-between items-center text-xs relative">
               <div class="flex-1 pr-2">
-                <div class="font-bold text-slate-800">{{ item.nama }}</div>
+                <div class="font-bold text-slate-800 capitalize">{{ item.nama }}</div>
+
+                <!-- 🎯 DROPDOWN PILIHAN SATUAN (SATUAN DASAR VS KONVERSI) -->
+                <div v-if="item.daftarKonversi && item.daftarKonversi.length > 0" class="my-1">
+                  <select
+                    v-model="item.satuanPilihan"
+                    @change="
+                      console.log('DROPDOWN DIGANTI OLEH IDX:', idx, 'VAL:', $event.target.value);
+                      gantiSatuanItem(idx, $event.target.value);
+                    "
+                    class="text-[11px] p-1 border border-slate-300 rounded bg-white font-semibold text-teal-700 outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer"
+                  >
+                    <!-- Opsi Satuan Dasar / Terkecil -->
+                    <option :value="'null'">{{ item.satuanTerkecil?.nama || "Pcs" }} (Eceran - Rp {{ formatRupiah(item.hargaJualDasarAsli || item.hargaJual) }})</option>
+
+                    <!-- Opsi Satuan Besar dari Konversi -->
+                    <option v-for="konv in item.daftarKonversi" :key="konv._id" :value="konv._id">{{ konv.satuanBesar?.nama || "Satuan Besar" }} (Isi {{ konv.nilaiKonversi }}) - Rp {{ formatRupiah(konv.hargaJual) }}</option>
+                  </select>
+                </div>
+
                 <div class="mt-0.5">
                   <div class="text-teal-700 font-semibold flex items-center gap-0.5">
                     <span>Rp</span>
@@ -115,9 +134,9 @@
 
               <div class="flex items-center gap-1.5">
                 <button @click="kurangiQty(idx)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 font-bold rounded flex items-center justify-center cursor-pointer">-</button>
-                <span class="w-6 text-center font-bold text-slate-800 text-xs">{{ item.qty }}</span>
+                <input type="number" min="1" v-model.number="item.qty" class="w-12 text-center py-1 bg-slate-50 border border-slate-300 rounded text-xs font-bold text-slate-800 outline-none focus:ring-1 focus:ring-teal-500" />
                 <button @click="tambahQty(idx)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 font-bold rounded flex items-center justify-center cursor-pointer">+</button>
-                <button @click="hapusKeranjang(idx)" class="ml-1 text-rose-500 hover:text-rose-700 font-bold cursor-pointer">✕</button>
+                <button @click="hapusKeranjang(idx)" class="ml-1 text-rose-500 hover:bg-rose-600 hover:text-white font-bold cursor-pointer absolute top-1 right-1 p-1 rounded transition">✕</button>
               </div>
             </div>
           </div>
@@ -450,22 +469,53 @@ watch(
 
 // AKSI KERANJANG
 const tambahKeKeranjang = (obat) => {
-  if (obat.stok <= 0) return toastStore.trigger(`Stok ${obat.nama} sudah habis! Silahkan lakukan pembelian.`, "error");
+  if (obat.stok <= 0) return toastStore.trigger(`Stok ${obat.nama} sudah habis!`, "error");
 
   const idKey = obat._id || obat.id;
   const ada = keranjang.value.find((k) => (k._id || k.id) === idKey);
+
   if (ada) {
-    if (ada.qty < obat.stok) ada.qty++;
-    else toastStore.trigger("Jumlah pembelian melebihi sisa stok!", "warning");
+    let pengali = 1;
+    if (ada.satuanPilihan) {
+      const konv = (obat.daftarKonversi || []).find((k) => k._id.toString() === ada.satuanPilihan.toString());
+      if (konv) pengali = Number(konv.nilaiKonversi || 1);
+    }
+
+    if ((ada.qty + 1) * pengali <= obat.stok) {
+      ada.qty++;
+    } else {
+      toastStore.trigger("Jumlah pembelian melebihi sisa stok!", "warning");
+    }
   } else {
-    keranjang.value.push({ ...obat, qty: 1 });
+    const hargaEceranMurni = Number(obat.hargaJual || 0);
+
+    keranjang.value.push({
+      ...obat,
+      qty: 1,
+      satuanPilihan: null, // Default satuan terkecil (Eceran)
+      hargaJualDasarAsli: hargaEceranMurni,
+      hargaBeliDasarAsli: Number(obat.hargaBeli || obat.hpp || 0),
+      hargaJual: hargaEceranMurni,
+    });
   }
 };
 
 const tambahQty = (idx) => {
   const item = keranjang.value[idx];
-  if (item.qty < item.stok) item.qty++;
-  else toastStore.trigger("Jumlah melebihi stok yang tersedia!", "warning");
+
+  // Cari nilai pengali konversi satuan yang sedang dipilih
+  let pengali = 1;
+  if (item.satuanPilihan) {
+    const konv = (item.daftarKonversi || []).find((k) => k._id.toString() === item.satuanPilihan.toString());
+    if (konv) pengali = Number(konv.nilaiKonversi || 1);
+  }
+
+  // Cek apakah penambahan 1 qty masih mencukupi stok terkecil di database
+  if ((item.qty + 1) * pengali <= item.stok) {
+    item.qty++;
+  } else {
+    toastStore.trigger("Jumlah melebihi stok yang tersedia!", "warning");
+  }
 };
 
 const kurangiQty = (idx) => {
@@ -559,19 +609,22 @@ const prosesSelesaiTransaksi = async () => {
 
   // 2. Kirim Transaksi ke API (Merapikan Payload Items & Tanggal Transaksi)
   try {
-    // 🎯 RAPIKAN ITEM PAYLOAD AGAR INTEGRASI TIPE BARANG DARI BACKEND BERJALAN MULUS
-    const itemsPayload = keranjang.value.map((item) => ({
-      _id: item._id || item.id,
-      idObat: item.idObat,
-      nama: item.nama,
-      qty: item.qty,
-      hargaBeli: item.hargaBeli || item.hpp || 0,
-      hargaJual: item.hargaJual,
-      subtotal: item.qty * item.hargaJual,
-      tipeBarang: typeof item.tipeBarang === "object" ? item.tipeBarang?._id : item.tipeBarang,
-      satuan: item.satuanTerkecil?.nama || "Pcs",
-    }));
+    const itemsPayload = keranjang.value.map((item) => {
+      // 🎯 Ambil ID satuan yang sedang aktif dipilih (satuan besar atau satuan terkecil)
+      let idSatuanAktif = item.satuanPilihan || item.satuanTerkecil?._id || item.satuanTerkecil;
 
+      return {
+        _id: item._id || item.id,
+        idObat: item.idObat,
+        nama: item.nama,
+        qty: item.qty,
+        satuan: idSatuanAktif,
+        hargaBeli: item.hargaBeli || item.hpp || 0,
+        hargaJual: item.hargaJual,
+        subtotal: item.qty * item.hargaJual,
+        labaKotorItem: (item.hargaJual - (item.hargaBeli || item.hpp || 0)) * item.qty,
+      };
+    });
     const payload = {
       items: itemsPayload,
       diskon: Number(diskonKasir.value || 0),
@@ -644,5 +697,44 @@ const resetKasir = () => {
   searchKasir.value = "";
   tglTransaksiKasir.value = getTodayFormatted(); // Reset tanggal ke realtime
   localStorage.removeItem("kasir_keranjang");
+};
+
+// Tangani perubahan satuan di keranjang (Ganti harga otomatis sesuai satuan)
+const gantiSatuanItem = (index, idKonversi) => {
+  const item = keranjang.value[index];
+  let pengaliBaru = 1;
+
+  // Jika kembali ke satuan dasar / terkecil (Eceran)
+  if (!idKonversi || idKonversi === "null" || idKonversi === "" || idKonversi === "undefined" || idKonversi === "null") {
+    console.log("MASUK KE KONDISI ECERAN (NULL)");
+    console.log("Nilai hargaJualDasarAsli:", item.hargaJualDasarAsli);
+
+    item.satuanPilihan = null;
+    item.hargaJual = Number(item.hargaJualDasarAsli || 0);
+    item.hargaBeli = Number(item.hargaBeliDasarAsli || 0);
+  } else {
+    // Cari data konversi satuan besar yang dipilih
+    const match = item.daftarKonversi.find((k) => k._id.toString() === idKonversi.toString());
+    if (match) {
+      pengaliBaru = Number(match.nilaiKonversi || 1);
+      item.satuanPilihan = match._id;
+
+      // Ambil harga jual satuan besar, fallback ke perkalian harga dasar eceran
+      item.hargaJual = Number(match.hargaJual > 0 ? match.hargaJual : item.hargaJualDasarAsli * pengaliBaru);
+
+      // Sesuaikan harga beli/modal berdasarkan konversi satuan
+      if (match.hargaBeli > 0) {
+        item.hargaBeli = match.hargaBeli;
+      } else {
+        item.hargaBeli = Number(item.hargaBeliDasarAsli || 0) * pengaliBaru;
+      }
+    }
+  }
+
+  // Validasi stok
+  if (item.qty * pengaliBaru > item.stok) {
+    toastStore.trigger(`⚠️ Stok tidak cukup untuk satuan ini! Qty disesuaikan.`, "warning");
+    item.qty = Math.floor(item.stok / pengaliBaru) > 0 ? Math.floor(item.stok / pengaliBaru) : 1;
+  }
 };
 </script>

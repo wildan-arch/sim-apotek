@@ -89,6 +89,7 @@ router.put("/lunas/:id", async (req, res) => {
 });
 
 // 3. POST SIMPAN FAKTUR PEMBELIAN (PBF), AUTO-UPDATE KATALOG & LOG HISTORI HARGA
+// 3. POST SIMPAN FAKTUR PEMBELIAN (PBF), AUTO-UPDATE KATALOG & LOG HISTORI HARGA
 router.post("/", async (req, res) => {
   try {
     const { header, items, totalBayar } = req.body;
@@ -110,6 +111,7 @@ router.post("/", async (req, res) => {
       items: items.map((item) => ({
         obat: item.obat || item.obatId,
         qty: Number(item.qty || 0),
+        satuanBeli: item.satuanBeli || "-",
         hargaBeli: Number(item.hargaBeli || 0),
         diskonPersen: Number(item.diskonPersen || 0),
         diskonNominal: Number(item.diskonNominal || 0),
@@ -126,14 +128,33 @@ router.post("/", async (req, res) => {
       const targetObatId = item.obat || item.obatId;
 
       if (targetObatId) {
-        const obat = await Obat.findById(targetObatId);
+        // Populasikan satuanBesar di dalam daftarKonversi
+        const obat = await Obat.findById(targetObatId).populate("daftarKonversi.satuanBesar");
 
         if (obat) {
-          const konversi = Number(obat.nilaiKonversi) > 1 ? Number(obat.nilaiKonversi) : 1;
-          const penambahanStok = Number(item.qty || 0) * konversi;
+          let nilaiKonversiSatuan = 1;
+          const hargaBeliFakturSatuan = Number(item.hargaBersih || item.hargaBeli || 0);
 
-          const hargaBoxBersih = Number(item.hargaBersih || item.hargaBeli || 0);
-          const hppEceranBaru = Math.round(hargaBoxBersih / konversi);
+          // 🎯 CEK KONVERSI BERDASARKAN TEKS SATUAN BELI (Case-Insensitive)
+          if (item.satuanBeli) {
+            const satuanBeliInput = String(item.satuanBeli).trim().toLowerCase();
+
+            const matchKonversi = obat.daftarKonversi.find((k) => {
+              // Cek jika satuanBesar berupa objek yang punya nama, atau berupa string ID/nama
+              const namaSatuanKonversi = k.satuanBesar?.nama ? String(k.satuanBesar.nama).trim().toLowerCase() : "";
+              return namaSatuanKonversi === satuanBeliInput;
+            });
+
+            if (matchKonversi) {
+              nilaiKonversiSatuan = Number(matchKonversi.nilaiKonversi || 1);
+            }
+          }
+
+          // Total penambahan stok ke satuan terkecil (Qty beli * nilai konversi)
+          const penambahanStok = Number(item.qty || 0) * nilaiKonversiSatuan;
+
+          // Hitung HPP eceran baru (Harga beli satuan besar / nilai konversi)
+          const hppEceranBaru = Math.round(hargaBeliFakturSatuan / nilaiKonversiSatuan);
 
           const margin = Number(obat.marginPersen || 20);
           const hargaJualBaru = Number(item.hargaJual) > 0 ? Number(item.hargaJual) : Math.round(hppEceranBaru + hppEceranBaru * (margin / 100));
@@ -158,13 +179,12 @@ router.post("/", async (req, res) => {
           const updateData = {
             $inc: { stok: penambahanStok },
             $set: {
-              hargaBeliSatuanBesar: hargaBoxBersih,
               hargaBeli: hppEceranBaru,
               hargaJual: hargaJualBaru,
               pabrik: namaPBF,
             },
             $addToSet: {
-              daftarPBF: { nama: namaPBF, hargaBeli: hargaBoxBersih, isUtama: false },
+              daftarPBF: { nama: namaPBF, hargaBeli: hargaBeliFakturSatuan, isUtama: false },
             },
           };
 

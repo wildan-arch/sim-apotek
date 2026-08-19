@@ -12,6 +12,7 @@ const pembelianSchema = new mongoose.Schema(
       {
         obat: { type: mongoose.Schema.Types.ObjectId, ref: "Obat" },
         qty: { type: Number, required: true },
+        satuanBeli: { type: String, default: "-" },
         hargaBeli: { type: Number, required: true },
         subtotal: { type: Number, required: true },
       },

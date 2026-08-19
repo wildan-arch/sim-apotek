@@ -82,7 +82,7 @@
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
         <button @click="tutupModalKirimWa" type="button" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl text-xs transition cursor-pointer">Batal</button>
 
-        <button type="button" @click="eksekusiKirimWaLaporan" class="w-full px-4 py-2 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition">
+        <button type="button" @click="eksekusiKirimWaLaporan" class="w-full px-4 py-2 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition bg-teal-600 hover:bg-teal-700 text-white cursor-pointer">
           <span v-if="isSendingWa" class="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full"></span>
           <span>{{ isSendingWa ? "Mengirim..." : "🚀 Kirim Sekarang" }}</span>
         </button>

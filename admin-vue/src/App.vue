@@ -90,6 +90,11 @@ import DefectaView from "./views/DefectaView.vue";
 import UserManagementModal from "@/components/modals/UserManagementModal.vue";
 import ProfileView from "@/views/ProfileView.vue";
 
+// TITLE WEBSITE
+onMounted(() => {
+  document.title = "Sim Apotek";
+});
+
 // IMPORT STORE
 import { useMasterStore } from "@/stores/useMasterStore.js";
 
