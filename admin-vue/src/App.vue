@@ -176,15 +176,12 @@ const bukaModalWaHandler = (pesan) => {
   isModalKirimWaOpen.value = true;
 };
 
-const isLoggedIn = ref(localStorage.getItem("is_logged_in") === "true");
-
+const isLoggedIn = ref(sessionStorage.getItem("is_logged_in") === "true");
 // Fungsi yang dieksekusi saat tombol logout di Sidebar diklik
 const handleLogout = () => {
-  localStorage.removeItem("is_logged_in");
-  localStorage.removeItem("user_role");
-  localStorage.removeItem("username");
-
-  // 2. Ubah state menjadi false agar layar otomatis kembali ke LoginView
+  sessionStorage.removeItem("is_logged_in");
+  sessionStorage.removeItem("user_role");
+  sessionStorage.removeItem("username");
   isLoggedIn.value = false;
 };
 

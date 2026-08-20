@@ -75,9 +75,9 @@ const handleLogin = async () => {
     }
 
     // SIMPAN STATUS LOGIN KE BROWSER
-    localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("username", data.username);
-    localStorage.setItem("role", data.role);
+    sessionStorage.setItem("isLoggedIn", "true");
+    sessionStorage.setItem("username", data.username);
+    sessionStorage.setItem("role", data.role);
 
     toastStore.trigger("Login Berhasil! Selamat datang, " + data.username, "success");
 
