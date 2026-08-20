@@ -89,14 +89,19 @@ import ToastNotif from "@/components/ToastNotif.vue";
 import DefectaView from "./views/DefectaView.vue";
 import UserManagementModal from "@/components/modals/UserManagementModal.vue";
 import ProfileView from "@/views/ProfileView.vue";
+// IMPORT STORE
+import { useMasterStore } from "@/stores/useMasterStore.js";
 
 // TITLE WEBSITE
 onMounted(() => {
   document.title = "Sim Apotek";
+  // --- TAMBAHKAN PENGECEKAN INI AGAR TIDAK TEMBUS URL ---
+  const statusLogin = localStorage.getItem("is_logged_in");
+  if (statusLogin === "true") {
+    isLoggedIn.value = true;
+  }
+  loadAllData();
 });
-
-// IMPORT STORE
-import { useMasterStore } from "@/stores/useMasterStore.js";
 
 const isUserModalOpen = ref(false);
 const isResetModalOpen = ref(false);
@@ -126,7 +131,6 @@ const isModalWaOpen = ref(false);
 const isModalKirimWaOpen = ref(false);
 const previewPesanWa = ref("");
 
-// FUNGSI NAVIGASI & PEMICU MODAL
 // FUNGSI NAVIGASI & PEMICU MODAL (DENGAN PENGAMAN ROLE)
 const gantiMenu = (namaMenu) => {
   // Ambil role user yang sedang aktif dari localStorage

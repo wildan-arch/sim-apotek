@@ -44,14 +44,12 @@
   </div>
   <ToastNotif />
 </template>
-
 <script setup>
 import { ref } from "vue";
 import ToastNotif from "@/components/ToastNotif.vue";
 import { useToastStore } from "@/stores/toastStore";
 
 const toastStore = useToastStore();
-
 const emit = defineEmits(["login-success"]);
 
 const form = ref({
@@ -61,12 +59,9 @@ const form = ref({
 
 const handleLogin = async () => {
   try {
-    // Sesuaikan URL endpoint backend kamu (misal port 5000 atau sesuai server kamu)
     const response = await fetch("https://sim-apotek-production.up.railway.app/api/auth/login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         username: form.value.username,
         password: form.value.password,
@@ -75,19 +70,22 @@ const handleLogin = async () => {
 
     const data = await response.json();
 
-    // Jika status dari backend bukan sukses (misal 400/500)
     if (!response.ok) {
       throw new Error(data.message || "Gagal masuk ke sistem!");
     }
 
-    // Jika login berhasil
+    // SIMPAN STATUS LOGIN KE BROWSER
+    localStorage.setItem("isLoggedIn", "true");
+    localStorage.setItem("username", data.username);
+    localStorage.setItem("role", data.role);
+
     toastStore.trigger("Login Berhasil! Selamat datang, " + data.username, "success");
 
-    // Kirim data sukses ke App.vue
+    // Kirim sinyal ke App.vue bahwa login sukses
     emit("login-success", data);
   } catch (err) {
     toastStore.trigger(err.message);
-    console.error("Gagal login:", err || "Terjadi kesalahan saat login.", "error");
+    console.error("Gagal login:", err);
   }
 };
 </script>
