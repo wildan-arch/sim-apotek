@@ -119,16 +119,6 @@ export const apiPembelian = {
   getHutang: () => fetch(`${BASE_URL}/pembelian/hutang`).then((r) => r.json()),
   lunasiHutang: (id) => fetch(`${BASE_URL}/pembelian/lunas/${id}`, { method: "PUT" }),
 };
-// 5. ENDPOINT INTEGRASI WHATSAPP
-export const apiWA = {
-  getStatus: () => fetch(`${BASE_URL}/wa-status`).then((r) => r.json()),
-  kirimPesan: (nomorTujuan, pesan) =>
-    fetch(`${BASE_URL}/kirim-wa-otomatis`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nomorTujuan, pesan }),
-    }).then((r) => r.json()),
-};
 
 // ENDPOINT TIPE BARANG
 export const apiTipeBarang = {

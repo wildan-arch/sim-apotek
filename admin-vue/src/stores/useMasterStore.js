@@ -1,5 +1,5 @@
 import { ref, computed } from "vue";
-import { apiObat, apiKategori, apiSatuan, apiPembelian, apiWA, apiTipeBarang } from "@/services/api.js"; // 👈 Tambah apiTipeBarang
+import { apiObat, apiKategori, apiSatuan, apiPembelian, apiTipeBarang } from "@/services/api.js"; // 👈 Tambah apiTipeBarang
 import { isDekatExpired } from "@/utils/formatters.js";
 
 // Reactive Shared State Global
@@ -9,8 +9,6 @@ const masterSatuan = ref([]);
 const masterTipeBarang = ref([]); // 👈 Tambah state masterTipeBarang
 const rekapHutang = ref({ totalHutangBelumLunas: 0, totalFakturBelumLunas: 0 });
 const historiHutang = ref([]);
-const noWaOwner = ref(localStorage.getItem("noWaOwnerApotek") || "08123456789");
-const waStatus = ref({ connected: false, qrCode: null, account: null });
 
 export function useMasterStore() {
   const loadAllData = async () => {
@@ -41,40 +39,17 @@ export function useMasterStore() {
     }
   };
 
-  const simpanNoWaKeStorage = (nomor) => {
-    noWaOwner.value = nomor.trim();
-    localStorage.setItem("noWaOwnerApotek", noWaOwner.value);
-  };
-
-  const cekStatusWA = async () => {
-    try {
-      const data = await apiWA.getStatus();
-      const resData = data?.data || data;
-      waStatus.value = {
-        connected: resData?.connected || false,
-        qrCode: resData?.qrCode || null,
-        account: resData?.account || null,
-      };
-    } catch (err) {
-      console.error("Gagal terhubung ke WA API:", err);
-    }
-  };
-
   const obatAkanED = computed(() => daftarObat.value.filter((o) => o.expiredDate && isDekatExpired(o.expiredDate)));
 
   return {
     daftarObat,
     masterKategori,
     masterSatuan,
-    masterTipeBarang, 
+    masterTipeBarang,
     rekapHutang,
     historiHutang,
-    noWaOwner,
-    waStatus,
     obatAkanED,
     loadAllData,
     loadLaporanHutang,
-    simpanNoWaKeStorage,
-    cekStatusWA,
   };
 }

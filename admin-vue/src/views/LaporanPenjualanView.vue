@@ -30,14 +30,9 @@
         </button>
 
         <div class="h-5 w-px bg-slate-200 mx-0.5 hidden sm:block"></div>
-
-        <button @click="kirimLaporanWA" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer transition shadow-xs active:scale-95">
-          <span class="text-sm">💬</span> Kirim WA
-        </button>
       </div>
     </div>
 
-    <!-- KOTAK REKAP RINGKASAN KEUANGAN (DIAM / flex-none) -->
     <!-- KOTAK REKAP RINGKASAN KEUANGAN (5 KOLOM) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 flex-none">
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
@@ -291,24 +286,6 @@ const exportExcelPenjualan = () => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Penjualan");
   XLSX.writeFile(wb, `Laporan_Penjualan_${filterLaporan.value.tglAwal}.xlsx`);
-};
-
-const kirimLaporanWA = () => {
-  const tglAwal = formatTanggalSingkat(filterLaporan.value.tglAwal);
-  const tglAkhir = formatTanggalSingkat(filterLaporan.value.tglAkhir);
-
-  const pesanText = `📊 *LAPORAN PENJUALAN APOTEK*
-Periode: ${tglAwal} s/d ${tglAkhir}
-
-- Total Transaksi: ${rekapLaporan.value.totalTransaksi} Transaksi
-- Total Omset: Rp ${formatRupiah(rekapLaporan.value.totalOmset)}
-- Total Modal (HPP): Rp ${formatRupiah(rekapLaporan.value.totalModalHpp)}
-- Estimasi Laba Kotor: Rp ${formatRupiah(rekapLaporan.value.totalLabaKotor)}
-
-_Dikirim otomatis dari SIM Apotek_`;
-  console.log("Tombol WA diklik, pesan:", pesanText);
-
-  emit("bukaModalKirimWa", pesanText);
 };
 
 onMounted(() => {

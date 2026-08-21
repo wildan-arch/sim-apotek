@@ -9,7 +9,6 @@
       @gantiMenu="gantiMenu"
       @bukaMenuLaporan="gantiMenu('laporan-penjualan')"
       @bukaMenuHutang="gantiMenu('hutang')"
-      @bukaPengaturanWA="isModalWaOpen = true"
       @open-setting="bukaModalSetting"
       @bukaStokOpname="showModalStokOpname = true"
       @bukaUserManagement="isUserModalOpen = true"
@@ -40,7 +39,7 @@
       <DefectaView v-else-if="menuAktif === 'defecta'" />
 
       <!-- RENDER HALAMAN LAPORAN -->
-      <LaporanPenjualanView v-else-if="menuAktif === 'laporan-penjualan' || menuAktif === 'laporan'" @bukaModalKirimWa="bukaModalWaHandler" />
+      <LaporanPenjualanView v-else-if="menuAktif === 'laporan-penjualan' || menuAktif === 'laporan'" />
       <LaporanPembelianView v-else-if="menuAktif === 'laporan-pembelian'" />
 
       <!-- VIEW HUTANG USAHA PBF -->
@@ -59,7 +58,6 @@
       <UserManagementModal :isOpen="isUserModalOpen" @close="isUserModalOpen = false" @user-created="fetchUserList" />
       <ResetPasswordModal :isOpen="isResetModalOpen" @close="isResetModalOpen = false" />
       <ToastNotif />
-      <ModalWA v-model:isModalWaOpen="isModalWaOpen" v-model:isModalKirimWaOpen="isModalKirimWaOpen" :pesanText="previewPesanWa" />
     </main>
   </div>
 </template>
@@ -83,7 +81,6 @@ import ModalObatMaster from "@/components/modals/ModalObatMaster.vue";
 import ModalFaktur from "@/components/modals/ModalFaktur.vue";
 import ModalHistoriHarga from "@/components/modals/ModalHistoriHarga.vue";
 import ModalStokOpnameMobile from "@/components/modals/ModalStokOpnameMobile.vue";
-import ModalWA from "@/components/modals/ModalWA.vue";
 import ModalSettingApotek from "@/components/modals/ModalSettingApotek.vue";
 import ToastNotif from "@/components/ToastNotif.vue";
 import DefectaView from "./views/DefectaView.vue";
@@ -127,9 +124,6 @@ const editDataModal = ref(null);
 const modalFakturAktif = ref(false);
 const modalHistoriHargaAktif = ref(false);
 const obatAktifHistori = ref(null);
-const isModalWaOpen = ref(false);
-const isModalKirimWaOpen = ref(false);
-const previewPesanWa = ref("");
 
 // FUNGSI NAVIGASI & PEMICU MODAL (DENGAN PENGAMAN ROLE)
 const gantiMenu = (namaMenu) => {
@@ -169,11 +163,6 @@ const bukaModalFaktur = () => {
 const bukaModalHistoriHarga = (itemObat) => {
   obatAktifHistori.value = itemObat;
   modalHistoriHargaAktif.value = true;
-};
-
-const bukaModalWaHandler = (pesan) => {
-  previewPesanWa.value = pesan;
-  isModalKirimWaOpen.value = true;
 };
 
 const isLoggedIn = ref(sessionStorage.getItem("is_logged_in") === "true");
