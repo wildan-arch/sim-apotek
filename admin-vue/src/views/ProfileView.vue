@@ -73,8 +73,8 @@ import { ref, computed } from "vue";
 
 // Ambil data user dari localStorage saat login
 const userInfo = ref({
-  username: localStorage.getItem("username") || "Admin / Kasir",
-  role: localStorage.getItem("user_role") || "owner",
+  username: sessionStorage.getItem("username") || "Admin",
+  role: sessionStorage.getItem("user_role") || "owner",
 });
 
 const userInitial = computed(() => {

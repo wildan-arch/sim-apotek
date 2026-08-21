@@ -88,15 +88,13 @@ import UserManagementModal from "@/components/modals/UserManagementModal.vue";
 import ProfileView from "@/views/ProfileView.vue";
 // IMPORT STORE
 import { useMasterStore } from "@/stores/useMasterStore.js";
+import { useToastStore } from "@/stores/toastStore.js";
+
+const toast = useToastStore();
 
 // TITLE WEBSITE
 onMounted(() => {
   document.title = "Sim Apotek";
-  // --- TAMBAHKAN PENGECEKAN INI AGAR TIDAK TEMBUS URL ---
-  const statusLogin = localStorage.getItem("is_logged_in");
-  if (statusLogin === "true") {
-    isLoggedIn.value = true;
-  }
   loadAllData();
 });
 
@@ -128,13 +126,13 @@ const obatAktifHistori = ref(null);
 // FUNGSI NAVIGASI & PEMICU MODAL (DENGAN PENGAMAN ROLE)
 const gantiMenu = (namaMenu) => {
   // Ambil role user yang sedang aktif dari localStorage
-  const currentRole = localStorage.getItem("user_role");
+  const currentRole = (sessionStorage.getItem("user_role") || "").toLowerCase();
 
   // Daftar menu yang khusus hanya boleh diakses oleh Owner
   const restrictedMenusForKasir = ["laporan-penjualan", "laporan-pembelian", "laporan"];
 
   // Jika akun kasir mencoba membuka menu khusus owner, blokir dan alihkan
-  if (currentRole === "kasir" && restrictedMenusForKasir.includes(namaMenu)) {
+  if (currentRole !== "owner" && restrictedMenusForKasir.includes(namaMenu)) {
     toast.trigger("Akses ditolak! Menu ini khusus untuk Owner.", "error");
     menuAktif.value = "dashboard";
     localStorage.setItem("menuAktif", "dashboard");
@@ -171,6 +169,11 @@ const handleLogout = () => {
   sessionStorage.removeItem("is_logged_in");
   sessionStorage.removeItem("user_role");
   sessionStorage.removeItem("username");
+
+  // 🎯 TAMBAHKAN DUA BARIS INI:
+  localStorage.removeItem("menuAktif"); // Hapus riwayat menu terakhir
+  menuAktif.value = "dashboard"; // Reset tampilan ke dashboard
+
   isLoggedIn.value = false;
 };
 
@@ -182,8 +185,9 @@ const fetchUserList = () => {
 
 const handleLoginSuccess = (userData) => {
   // Simpan data login dari backend nanti di sini
-  localStorage.setItem("is_logged_in", "true");
-  localStorage.setItem("user_role", userData.role);
+  sessionStorage.setItem("is_logged_in", "true");
+  sessionStorage.setItem("username", userData.username);
+  sessionStorage.setItem("user_role", userData.role);
   isLoggedIn.value = true;
 };
 

@@ -43,7 +43,7 @@
                     Stok Sistem Saat Ini: <b class="text-slate-700">{{ selectedObat.stok }} {{ selectedObat.satuanTerkecil?.nama || "Pcs" }}</b>
                   </p>
                 </div>
-                <button @click="selectedObat = null" class="text-[10px] text-rose-600 underline font-bold">Batal</button>
+                <button @click="selectedObat = null" class="text-[10px] text-rose-600 underline font-bold cursor-pointer">Batal</button>
               </div>
 
               <!-- INPUT STOK FISIK, BATCH, ED -->
@@ -72,7 +72,7 @@
           <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
             <div class="flex justify-between items-center border-b pb-2 mb-2">
               <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1"><span>🛒</span> Daftar Opname Sementara ({{ daftarOpname.length }})</h4>
-              <button v-if="daftarOpname.length > 0" @click="daftarOpname = []" class="text-[10px] text-rose-600 underline font-semibold">Kosongkan</button>
+              <button v-if="daftarOpname.length > 0" @click="daftarOpname = []" class="text-[10px] text-rose-600 underline font-semibold cursor-pointer">Kosongkan</button>
             </div>
 
             <div v-if="daftarOpname.length === 0" class="text-center text-xs text-slate-400 py-6">Belum ada item ditambahkan ke daftar opname.</div>

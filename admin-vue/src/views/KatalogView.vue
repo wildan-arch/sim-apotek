@@ -100,7 +100,7 @@
                     {{ typeof item.tipeBarang === "object" ? item.tipeBarang?.nama : item.tipeBarang || "Tanpa Tipe" }}
                   </span>
                   <!-- Tag PBF -->
-                  <span class="text-[11px] text-slate-400 font-normal">
+                  <span class="text-[11px] text-slate-400 font-normal capitalize">
                     {{ item.pabrik || "Tanpa PBF" }}
                   </span>
                 </div>

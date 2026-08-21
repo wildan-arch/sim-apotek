@@ -23,15 +23,19 @@
           />
         </div>
 
-        <div>
+        <div class="relative">
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Password Sementara</label>
           <input
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             v-model="form.password"
             placeholder="••••••••"
             class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition"
             required
           />
+          <!-- Tombol Lihat / Sembunyikan Password -->
+          <button type="button" @click="showPassword = !showPassword" class="absolute right-4 top-32px text-slate-400 hover:text-slate-600 text-xs font-bold focus:outline-none">
+            {{ showPassword ? "Sembunyikan" : "Lihat" }}
+          </button>
         </div>
 
         <div>
@@ -69,10 +73,15 @@ const form = ref({
   role: "kasir",
 });
 
+const showPassword = ref(false);
+
+const passwordForm = ref({
+  newPassword: "",
+});
+
 const handleRegister = async () => {
   try {
-    const API_URL = window.location.hostname === "localhost" ? "http://localhost:5000" : "https://sim-apotek-production.up.railway.app";
-
+    const API_URL = "https://sim-apotek-production.up.railway.app";
     const response = await fetch(`${API_URL}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -80,6 +89,7 @@ const handleRegister = async () => {
     });
 
     const data = await response.json();
+    console.log("Respon error dari server:", data);
     if (!response.ok) throw new Error(data.message || "Gagal membuat akun!");
 
     toast.trigger("Berhasil! Akun kasir baru telah ditambahkan.", "success");

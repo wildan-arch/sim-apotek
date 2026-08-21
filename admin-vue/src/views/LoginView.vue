@@ -21,15 +21,20 @@
           />
         </div>
 
-        <div>
+        <div class="relative">
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Password</label>
           <input
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             v-model="form.password"
             placeholder="••••••••"
-            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition"
+            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition relative"
             required
           />
+
+          <!-- Tombol Lihat / Sembunyikan Password -->
+          <button type="button" @click="showPassword = !showPassword" class="absolute right-4 top-35px text-slate-400 hover:text-slate-600 text-xs font-bold focus:outline-none">
+            {{ showPassword ? "Sembunyikan" : "Lihat" }}
+          </button>
         </div>
 
         <button type="submit" class="w-full py-3.5 bg-teal-600 hover:bg-teal-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-lg shadow-teal-600/30 transition cursor-pointer mt-2">Masuk ke Sistem</button>
@@ -57,6 +62,12 @@ const form = ref({
   password: "",
 });
 
+const showPassword = ref(false);
+
+const passwordForm = ref({
+  newPassword: "",
+});
+
 const handleLogin = async () => {
   try {
     const response = await fetch("https://sim-apotek-production.up.railway.app/api/auth/login", {
@@ -77,7 +88,7 @@ const handleLogin = async () => {
     // SIMPAN STATUS LOGIN KE BROWSER
     sessionStorage.setItem("isLoggedIn", "true");
     sessionStorage.setItem("username", data.username);
-    sessionStorage.setItem("role", data.role);
+    sessionStorage.setItem("user_role", data.role);
 
     toastStore.trigger("Login Berhasil! Selamat datang, " + data.username, "success");
 

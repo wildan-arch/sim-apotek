@@ -233,8 +233,8 @@ import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const isModalConfirmOpen = ref(false);
 
-const username = ref(localStorage.getItem("username") || "Admin");
-const role = ref(localStorage.getItem("user_role") || "owner");
+const username = ref(sessionStorage.getItem("username") || "Admin");
+const role = ref(sessionStorage.getItem("user_role") || "owner");
 
 const userInitial = computed(() => {
   return username.value ? username.value.charAt(0).toUpperCase() : "A";
