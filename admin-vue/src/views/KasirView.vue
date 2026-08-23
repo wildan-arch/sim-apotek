@@ -607,24 +607,26 @@ const prosesSelesaiTransaksi = async () => {
     return;
   }
 
-  // 2. Kirim Transaksi ke API (Merapikan Payload Items & Tanggal Transaksi)
+  // 2. Kirim Transaksi ke API
   try {
     const itemsPayload = keranjang.value.map((item) => {
-      // 🎯 Ambil ID satuan yang sedang aktif dipilih (satuan besar atau satuan terkecil)
       let idSatuanAktif = item.satuanPilihan || item.satuanTerkecil?._id || item.satuanTerkecil;
 
       return {
         _id: item._id || item.id,
         idObat: item.idObat,
         nama: item.nama,
-        qty: item.qty,
-        satuan: idSatuanAktif,
+
+        // 🎯 Send data asli dari kasir (Backend akan menghitung konversi stok & harganya secara otomatis)
+        qty: Number(item.qty || 1), // Misal: 1 (Strip)
+        satuan: idSatuanAktif, // ID Satuan Strip
         hargaBeli: item.hargaBeli || item.hpp || 0,
-        hargaJual: item.hargaJual,
-        subtotal: item.qty * item.hargaJual,
-        labaKotorItem: (item.hargaJual - (item.hargaBeli || item.hpp || 0)) * item.qty,
+        hargaJual: Number(item.hargaJual), // Harga jual per Strip
+        subtotal: Number(item.qty || 1) * Number(item.hargaJual),
+        labaKotorItem: (Number(item.hargaJual) - (item.hargaBeli || item.hpp || 0)) * Number(item.qty || 1),
       };
     });
+
     const payload = {
       items: itemsPayload,
       diskon: Number(diskonKasir.value || 0),
@@ -637,7 +639,7 @@ const prosesSelesaiTransaksi = async () => {
     const result = await apiPenjualan.transaksiBaru(payload);
     const resData = result?.data || result;
 
-    if (resData) {
+    if (resData && !result?.message?.includes("tidak mencukupi")) {
       transaksiTerakhir.value = resData;
       emit("transaksiSukses", resData);
       showModalCetak.value = true;

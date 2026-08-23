@@ -4,7 +4,6 @@ const Penjualan = require("../models/Penjualan");
 const Obat = require("../models/Obat");
 const { verifyOwner } = require("../middleware/authMiddleware");
 
-// 🎯 ENDPOINT ANALISIS PERGERAKAN STOK (DENGAN FILTER PERIODE TANGGAL)
 router.get("/analisis-pergerakan", async (req, res) => {
   try {
     const { periode } = req.query;
@@ -27,77 +26,59 @@ router.get("/analisis-pergerakan", async (req, res) => {
       filterTanggal = { createdAt: { $gte: tglAwal } };
     }
 
-    const pipeline = [];
+    const daftarPenjualan = await Penjualan.find(filterTanggal).populate("items.obat");
 
-    if (Object.keys(filterTanggal).length > 0) {
-      pipeline.push({ $match: filterTanggal });
-    }
+    const petaAnalisis = {};
 
-    pipeline.push(
-      { $unwind: "$items" },
-      {
-        $group: {
-          _id: "$items.obat",
-          nama: { $first: "$items.nama" },
-          totalTerjual: { $sum: "$items.qty" },
-          totalOmset: { $sum: { $multiply: ["$items.qty", "$items.hargaJual"] } },
-        },
-      },
-      {
-        $lookup: {
-          from: "obats",
-          let: { idBarang: "$_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $or: [{ $eq: ["$_id", "$$idBarang"] }, { $eq: ["$_id", { $toObjectId: "$$idBarang" }] }, { $eq: ["$idObat", "$$idBarang"] }],
-                },
-              },
-            },
-          ],
-          as: "katalogObat",
-        },
-      },
-      {
-        $lookup: {
-          from: "satuans",
-          localField: "katalogObat.satuanTerkecil",
-          foreignField: "_id",
-          as: "dataSatuan",
-        },
-      },
-      {
-        $addFields: {
-          stok: {
-            $ifNull: [{ $arrayElemAt: ["$katalogObat.stok", 0] }, 0],
-          },
-          satuan: {
-            $ifNull: [{ $arrayElemAt: ["$dataSatuan.nama", 0] }, "Pcs"],
-          },
-        },
-      },
-      {
-        $project: {
-          katalogObat: 0,
-          dataSatuan: 0,
-        },
-      },
-    );
+    daftarPenjualan.forEach((trx) => {
+      trx.items.forEach((item) => {
+        const obatObj = item.obat;
+        const obatId = item.obat?._id?.toString() || item.obat?.toString();
 
-    const hasilAgregasi = await Penjualan.aggregate(pipeline);
+        if (!obatId) return;
 
-    const fastMoving = [...hasilAgregasi].sort((a, b) => b.totalTerjual - a.totalTerjual).slice(0, 10);
-    const slowMoving = [...hasilAgregasi].sort((a, b) => a.totalTerjual - b.totalTerjual).slice(0, 10);
+        let faktor = 1;
+        // 🎯 LOGIKA AMAN: Jika obat punya daftar konversi dan qty yang dijual bernilai 1 atau kecil,
+        // periksa apakah satuan yang dipakai bukan satuan terkecil.
+        if (obatObj && obatObj.daftarKonversi && obatObj.daftarKonversi.length > 0) {
+          const isSatuanTerkecil = item.satuan?.toString() === obatObj.satuanTerkecil?.toString();
+
+          if (!isSatuanTerkecil) {
+            // Ambil nilai konversi dari master data obat (misal: isi 10 atau isi 4)
+            faktor = Number(obatObj.daftarKonversi[0].nilaiKonversi || obatObj.daftarKonversi[0].isi || 1);
+          }
+        }
+
+        const qtyTerKecil = Number(item.qty || 0) * faktor;
+        const omsetPerItem = Number(item.subtotal || item.qty * item.hargaJual || 0);
+
+        if (!petaAnalisis[obatId]) {
+          petaAnalisis[obatId] = {
+            _id: obatId,
+            nama: item.nama,
+            totalTerjual: 0,
+            totalOmset: 0,
+            stok: obatObj ? obatObj.stok : 0,
+          };
+        }
+
+        petaAnalisis[obatId].totalTerjual += qtyTerKecil;
+        petaAnalisis[obatId].totalOmset += omsetPerItem;
+      });
+    });
+
+    const hasilArray = Object.values(petaAnalisis);
+
+    const fastMoving = [...hasilArray].sort((a, b) => b.totalTerjual - a.totalTerjual).slice(0, 10);
+    const slowMoving = [...hasilArray].sort((a, b) => a.totalTerjual - b.totalTerjual).slice(0, 10);
 
     res.json({ fastMoving, slowMoving });
   } catch (error) {
-    console.error("Error agregasi pergerakan:", error);
+    console.error("Error analisis pergerakan:", error);
     res.status(500).json({ message: error.message });
   }
 });
 
-// 1. SIMPAN TRANSAKSI KASIR BARU & POTONG STOK
 // 1. SIMPAN TRANSAKSI KASIR BARU & POTONG STOK (SUPPORT MULTI-SATUAN)
 router.post("/", async (req, res) => {
   try {

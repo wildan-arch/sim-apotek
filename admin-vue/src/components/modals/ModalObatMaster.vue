@@ -533,7 +533,6 @@ watch(
       if (newEditData) {
         isEditMode.value = true;
         editId.value = newEditData._id;
-
         const hppEceran = newEditData.hargaBeli || 0;
         const idTipeExtracted = extractId(newEditData.tipeBarang);
         const tipeObatDefault = tipeBarangSorted.value.find((t) => t.nama.toLowerCase().includes("obat"))?._id || "";

@@ -210,10 +210,21 @@
           <button type="button" @click="tutupModal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition cursor-pointer">Batal</button>
 
           <div class="flex gap-3">
-            <button type="button" @click="simpanPendingFaktur" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-sm transition shadow cursor-pointer flex items-center gap-1.5">
+            <button
+              type="button"
+              @click="simpanPendingFaktur"
+              :disabled="isLoading"
+              class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-sm transition shadow cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-400 flex items-center gap-1.5"
+            >
               💾 Simpan Pending (Draft)
             </button>
-            <button type="submit" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-sm transition shadow cursor-pointer">Simpan Semua Obat ke Stok</button>
+            <button
+              type="submit"
+              :disabled="isLoading"
+              class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-sm transition shadow cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-400"
+            >
+              Simpan Semua Obat ke Stok
+            </button>
           </div>
         </div>
       </form>
@@ -512,6 +523,9 @@ const simpanPendingFaktur = () => {
     return toastStore.trigger("Isi minimal Nama PBF dan 1 barang!", "warning");
   }
 
+  if (isLoading.value) return;
+  isLoading.value = true;
+
   const idDraftFinal = fakturHeader.value.idDraft || `DRAFT-${Date.now().toString().slice(-6)}`;
   fakturHeader.value.idDraft = idDraftFinal;
 
@@ -533,6 +547,7 @@ const simpanPendingFaktur = () => {
   bersihkanDraftLokal();
   tutupModal();
 };
+
 
 const sinkronisasiKonversiMasterObat = async (itemFaktur) => {
   console.log("🚀 MENCUBA SINKRONISASI OBAT:", itemFaktur.obatId);
@@ -580,11 +595,14 @@ const sinkronisasiKonversiMasterObat = async (itemFaktur) => {
     console.error("Gagal sinkronisasi otomatis konversi:", err);
   }
 };
-// 🎯 2. Update fungsi simpanFaktur yang kamu punya menjadi seperti ini
+
+const isLoading = ref(false);
 const simpanFaktur = async () => {
   if (fakturItems.value.some((item) => !item.obatId)) {
     return toastStore.trigger("⚠️ Ada barang belum dipilih!", "warning");
   }
+  if (isLoading.value) return;
+  isLoading.value = true;
 
   const formattedItems = fakturItems.value.map((item) => {
     const jumlahBeli = Number(item.qty || 1);
@@ -593,7 +611,8 @@ const simpanFaktur = async () => {
     return {
       obat: item.obatId,
       obatId: item.obatId,
-      qty: jumlahBeli * isiKonversi,
+      qty: jumlahBeli,
+      totalStokMasuk: jumlahBeli * isiKonversi,
       qtyKonversi: isiKonversi,
       satuanBeli: item.satuanBeli || "",
       hargaBeli: Number(item.hargaBersih || item.hargaBeli || 0),

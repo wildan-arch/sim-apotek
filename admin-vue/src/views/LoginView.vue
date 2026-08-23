@@ -37,7 +37,13 @@
           </button>
         </div>
 
-        <button type="submit" class="w-full py-3.5 bg-teal-600 hover:bg-teal-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-lg shadow-teal-600/30 transition cursor-pointer mt-2">Masuk ke Sistem</button>
+        <button
+          type="submit"
+          :disabled="isLoading"
+          class="w-full py-3.5 bg-teal-600 hover:bg-teal-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-lg shadow-teal-600/30 transition cursor-pointer mt-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-400"
+        >
+          Masuk ke Sistem
+        </button>
       </form>
 
       <!-- Informasi Kontak Owner jika belum punya akun -->
@@ -68,7 +74,12 @@ const passwordForm = ref({
   newPassword: "",
 });
 
+const isLoading = ref(false);
 const handleLogin = async () => {
+  if (isLoading.value) return;
+
+  isLoading.value = true;
+
   try {
     const response = await fetch("https://sim-apotek-production.up.railway.app/api/auth/login", {
       method: "POST",

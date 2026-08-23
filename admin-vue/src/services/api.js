@@ -1,4 +1,14 @@
 const BASE_URL = "https://sim-apotek-production.up.railway.app/api";
+
+// 🛠️ Helper untuk mengambil data dari sessionStorage atau localStorage secara aman
+const getAuthData = () => {
+  const currentRole = sessionStorage.getItem("user_role") || sessionStorage.getItem("role") || localStorage.getItem("user_role") || localStorage.getItem("role") || "owner";
+
+  const token = sessionStorage.getItem("token") || sessionStorage.getItem("access_token") || sessionStorage.getItem("auth_token") || localStorage.getItem("token") || localStorage.getItem("access_token");
+
+  return { currentRole, token };
+};
+
 // 1. ENDPOINT OBAT
 export const apiObat = {
   getAll: () => fetch(`${BASE_URL}/obat`).then((r) => r.json()),
@@ -21,10 +31,7 @@ export const apiObat = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items }),
     }).then((r) => r.json()),
-
   getHistoriHarga: (id) => fetch(`${BASE_URL}/obat/${id}/histori-harga`).then((r) => r.json()),
-
-  // 🎯 TAMBAHKAN KODE INI DI BAWAH (JANGAN LUPA SIMPAN FILE):
   stokOpnameBulk: (items) =>
     fetch(`${BASE_URL}/obat/stok-opname-bulk`, {
       method: "PUT",
@@ -56,29 +63,40 @@ export const apiSatuan = {
 
 // 3. ENDPOINT PENJUALAN (POS & LAPORAN)
 export const apiPenjualan = {
-  transaksiBaru: (payload) =>
-    fetch(`${BASE_URL}/penjualan`, {
+  transaksiBaru: (payload) => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/penjualan`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(payload),
-    }).then((r) => r.json()),
+    }).then(async (r) => {
+      const data = await r.json();
+      if (!r.ok) {
+        console.error("❌ Detail Error dari Server (400):", data);
+      }
+      return data;
+    });
+  },
 
   getLaporan: (tglAwal, tglAkhir) => {
-    // Ambil role langsung dari localStorage
-    const currentRole = localStorage.getItem("user_role") || "kasir";
+    const { currentRole, token } = getAuthData();
 
     return fetch(`${BASE_URL}/penjualan/laporan?tglAwal=${tglAwal}&tglAkhir=${tglAkhir}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-user-role": currentRole, // Mengirim role user yang sedang aktif
+        Authorization: `Bearer ${token}`,
+        "x-user-role": currentRole,
       },
     }).then((r) => r.json());
   },
 
   getRiwayat: () => {
     const hariIni = new Date().toISOString().split("T")[0];
-    const token = localStorage.getItem("token") || localStorage.getItem("access_token");
+    const { token } = getAuthData();
 
     return fetch(`${BASE_URL}/penjualan/laporan?tglAwal=${hariIni}&tglAkhir=${hariIni}`, {
       method: "GET",
@@ -89,9 +107,8 @@ export const apiPenjualan = {
     }).then((r) => r.json());
   },
 
-  // ANALISIS PERGERAKAN (Jika endpoint ini juga ingin dikunci khusus owner, tambahkan header token juga di sini)
   getAnalisisPergerakan: () => {
-    const token = localStorage.getItem("token") || localStorage.getItem("access_token");
+    const { token } = getAuthData();
     return fetch(`${BASE_URL}/penjualan/analisis-pergerakan`, {
       method: "GET",
       headers: {
@@ -104,36 +121,85 @@ export const apiPenjualan = {
 
 // 4. ENDPOINT PEMBELIAN (FAKTUR PBF, LOG HARGA, & HUTANG)
 export const apiPembelian = {
-  getAll: () => fetch(`${BASE_URL}/pembelian`).then((r) => r.json()),
+  getAll: () => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/pembelian`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((r) => r.json());
+  },
 
-  // 🎯 BARIS TAMBAHAN UNTUK LAPORAN PEMBELIAN (PBF)
-  getLaporan: (tglAwal, tglAkhir) => fetch(`${BASE_URL}/pembelian/laporan?tglAwal=${tglAwal}&tglAkhir=${tglAkhir}`).then((r) => r.json()),
+  getLaporan: (tglAwal, tglAkhir) => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/pembelian/laporan?tglAwal=${tglAwal}&tglAkhir=${tglAkhir}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((r) => r.json());
+  },
 
-  simpanFaktur: (payload) =>
-    fetch(`${BASE_URL}/pembelian`, {
+  simpanFaktur: (payload) => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/pembelian`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(payload),
-    }).then((r) => r.json()),
-  getLogHarga: (obatId) => fetch(`${BASE_URL}/pembelian/log-harga/${obatId}`).then((r) => r.json()),
-  getHutang: () => fetch(`${BASE_URL}/pembelian/hutang`).then((r) => r.json()),
-  lunasiHutang: (id) => fetch(`${BASE_URL}/pembelian/lunas/${id}`, { method: "PUT" }),
+    }).then((r) => r.json());
+  },
+
+  getLogHarga: (obatId) => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/pembelian/log-harga/${obatId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((r) => r.json());
+  },
+
+  getHutang: () => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/pembelian/hutang`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((r) => r.json());
+  },
+
+  lunasiHutang: (id) => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/pembelian/lunas/${id}`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
 };
 
 // ENDPOINT TIPE BARANG
 export const apiTipeBarang = {
   getAll: () => fetch(`${BASE_URL}/tipe-barang`).then((r) => r.json()),
-  create: (data) =>
-    fetch(`${BASE_URL}/tipe-barang`, {
+  create: (data) => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/tipe-barang`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(data),
-    }).then((r) => r.json()),
-  update: (id, data) =>
-    fetch(`${BASE_URL}/tipe-barang/${id}`, {
+    }).then((r) => r.json());
+  },
+  update: (id, data) => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/tipe-barang/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(data),
-    }).then((r) => r.json()),
-  delete: (id) => fetch(`${BASE_URL}/tipe-barang/${id}`, { method: "DELETE" }).then((r) => r.json()),
+    }).then((r) => r.json());
+  },
+  delete: (id) => {
+    const { token } = getAuthData();
+    return fetch(`${BASE_URL}/tipe-barang/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((r) => r.json());
+  },
 };
