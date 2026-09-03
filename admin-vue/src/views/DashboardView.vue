@@ -33,9 +33,9 @@
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <h2 class="text-base font-bold text-slate-800 mb-3">Peringatan Obat Mendekati Kadaluarsa (ED)</h2>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto max-h-80 overflow-y-auto relative">
           <table class="w-full text-xs text-left text-slate-600">
-            <thead class="text-slate-700 uppercase bg-slate-50">
+            <thead class="text-slate-700 uppercase sticky top-0 z-20 bg-slate-50">
               <tr>
                 <th class="px-3 py-2">Nama Obat</th>
                 <th class="px-3 py-2">Stok</th>
@@ -60,9 +60,9 @@
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <h2 class="text-base font-bold text-slate-800 mb-3">Peringatan Obat Perlu Restock</h2>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto max-h-80 overflow-y-auto relative">
           <table class="w-full text-xs text-left text-slate-600">
-            <thead class="text-slate-700 uppercase bg-slate-50">
+            <thead class="text-slate-700 uppercase sticky top-0 z-20 bg-slate-50">
               <tr>
                 <th class="px-3 py-2">Nama Obat</th>
                 <th class="px-3 py-2">Sisa Stok</th>

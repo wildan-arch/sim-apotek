@@ -65,21 +65,45 @@
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
           <div class="sm:col-span-4 space-y-1.5">
             <label class="block text-xs font-bold text-slate-700"> Kode / ID Barang <span class="text-rose-500">*</span> </label>
-            <input
-              type="text"
-              v-model="barangForm.idObat"
-              required
-              placeholder="BRG-001"
-              class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 focus:bg-white rounded-xl text-sm font-mono uppercase text-slate-800 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
-            />
+
+            <!-- Bungkus input dengan relative agar tombol bisa menempel di dalamnya -->
+            <div class="relative">
+              <input
+                type="text"
+                v-model="barangForm.idObat"
+                required
+                placeholder="BRG-001"
+                class="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-300 focus:bg-white rounded-xl text-sm font-mono uppercase text-slate-800 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
+              />
+
+              <!-- Tombol dengan ikon di dalam input -->
+              <button
+                type="button"
+                @click="generateKodeBarang"
+                title="Generate Kode Otomatis"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition focus:outline-none"
+              >
+                <!-- Contoh Ikon SVG (Magic Wand / Generate) -->
+                <svg class="w-4 h-4 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86 5.174l-.152 1.442a2 2 0 01-3.582 1.096l-1.028-1.542a6 6 0 014.286-9.155l2.42-.484a2 2 0 001.022-.547l3.436-3.436a2 2 0 012.828 2.828l-3.436 3.436z"
+                  />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3h6v6M10 14L21 3" />
+                </svg>
+              </button>
+            </div>
           </div>
+
           <div class="sm:col-span-8 space-y-1.5">
             <label class="block text-xs font-bold text-slate-700"> Nama Barang / Obat <span class="text-rose-500">*</span> </label>
             <input
               type="text"
               v-model="barangForm.nama"
               required
-              placeholder="Contoh: Paracetamol 500mg / Susu UHT 250ml"
+              placeholder="Contoh: Paracetamol 500mg"
               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 focus:bg-white rounded-xl text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition capitalize"
             />
           </div>
@@ -737,5 +761,12 @@ const satuanSorted = computed(() => {
 
 const tutupModal = () => {
   emit("update:isOpen", false);
+};
+
+const generateKodeBarang = () => {
+  const randomNum = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, "0");
+  barangForm.value.idObat = `OBT-${randomNum}`.toUpperCase();
 };
 </script>

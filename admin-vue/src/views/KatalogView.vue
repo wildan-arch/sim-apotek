@@ -46,7 +46,7 @@
         <!-- FILTER TIPE BARANG DINAMIS -->
         <div class="flex items-center gap-1.5">
           <span class="text-slate-500 font-medium">Tipe:</span>
-          <select v-model="selectedTipeFilter" class="p-2 border border-slate-200 rounded-lg text-slate-700 bg-white outline-none focus:ring-2 focus:ring-teal-500 font-semibold text-xs">
+          <select v-model="selectedTipeFilter" class="p-2 border border-slate-200 rounded-lg text-slate-700 bg-white outline-none focus:ring-2 focus:ring-teal-500 font-semibold text-xs capitalize">
             <option value="ALL">Semua Tipe</option>
             <option v-for="t in daftarTipeBarang" :key="t._id || t.kode" :value="t._id || t.kode">
               {{ t.nama }}
@@ -96,7 +96,9 @@
                 <div class="font-semibold text-slate-800 text-sm">{{ formatCapitalize(item.nama) }}</div>
                 <div class="flex flex-wrap items-center gap-1.5 mt-1">
                   <!-- Tag Tipe Barang Dinamis -->
-                  <span :class="['px-2 py-0.5 text-[10px] font-bold rounded-md border', item.tipeBarang?.butuhDetailMedis !== false ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200']">
+                  <span
+                    :class="['px-2 py-0.5 text-[10px] font-bold rounded-md border capitalize', item.tipeBarang?.butuhDetailMedis !== false ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200']"
+                  >
                     {{ typeof item.tipeBarang === "object" ? item.tipeBarang?.nama : item.tipeBarang || "Tanpa Tipe" }}
                   </span>
                   <!-- Tag PBF -->
