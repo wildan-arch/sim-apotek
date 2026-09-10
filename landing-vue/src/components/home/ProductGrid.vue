@@ -3,7 +3,10 @@
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-slate-900">{{ $t("products.bestSeller") }}</h2>
-        <a href="#" class="text-emerald-700 text-xs font-bold hover:underline flex items-center gap-1">{{ $t("products.viewAll") }} <ChevronRight class="w-4 h-4" /> </a>
+        <button type="button" @click="$emit('change-page', 'product')" class="text-emerald-700 text-xs font-bold hover:underline flex items-center gap-1 cursor-pointer">
+          {{ $t("products.viewAll") }}
+          <ChevronRight class="w-4 h-4" />
+        </button>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
@@ -25,4 +28,6 @@ const products = [
   { id: 5, name: "Accu-Chek Active Test Strips (50s)", category: "Devices", price: "15.90", originalPrice: "18.90", discount: "16%", rating: "4.8" },
   { id: 6, name: "Ensure Vanilla Nutrition Powder", category: "Nutrition", price: "24.90", originalPrice: "29.90", discount: "17%", rating: "4.7" },
 ];
+
+defineEmits(["change-page"]);
 </script>

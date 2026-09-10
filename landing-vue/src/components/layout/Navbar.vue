@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
       <!-- Logo -->
       <div class="flex items-center gap-2 shrink-0">
-        <div class="bg-emerald-700 text-white p-2 rounded-lg">
+        <div class="bg-emerald-700 text-white p-2 rounded-lg hidden sm:block">
           <Plus class="w-6 h-6" />
         </div>
         <div>
@@ -12,7 +12,7 @@
       </div>
 
       <!-- Search Bar -->
-      <div class="flex-1 max-w-2xl mx-4">
+      <div class="flex-1 max-w-2xl mx-4 hidden sm:block">
         <div class="flex rounded-lg border border-slate-300 overflow-hidden focus-within:border-emerald-600">
           <select class="bg-slate-100 text-xs px-3 border-r border-slate-300 text-slate-600 focus:outline-none hidden md:block">
             <option>{{ $t("nav.allCategories") }}</option>
@@ -32,7 +32,7 @@
       <div class="flex items-center gap-4 shrink-0">
         <button class="flex items-center gap-2 text-slate-700 hover:text-emerald-700 text-sm font-medium">
           <User class="w-5 h-5" />
-          <div class="hidden sm:block text-left text-xs leading-tight">
+          <div class="sm:block text-left text-xs leading-tight">
             <span class="block text-slate-400 text-[10px]">{{ $t("nav.signIn") }}</span>
             <span class="font-bold">{{ $t("nav.account") }}</span>
           </div>
