@@ -26,7 +26,7 @@
         </div>
 
         <div class="flex justify-center gap-3 pt-2">
-          <button class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-6 py-3 rounded-md transition flex items-center gap-2 cursor-pointer">{{ $t("hero.shopBtn") }} <ArrowRight class="w-4 h-4" /></button>
+          <a href="#productGrid" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-6 py-3 rounded-md transition flex items-center gap-2 cursor-pointer">{{ $t("hero.shopBtn") }} <ArrowRight class="w-4 h-4" /></a>
           <button class="bg-white hover:bg-emerald-800 hover:text-slate-50 text-emerald-800 border border-slate-300 font-bold text-xs px-6 py-3 rounded-md transition flex items-center gap-2 cursor-pointer">
             {{ $t("hero.uploadBtn") }} <Upload class="w-4 h-4" />
           </button>

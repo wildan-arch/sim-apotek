@@ -1,5 +1,5 @@
 <template>
-  <section class="py-10 bg-white border-t border-slate-200">
+  <section class="py-10 bg-white border-t border-slate-200" id="productGrid">
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-slate-900">{{ $t("products.bestSeller") }}</h2>
