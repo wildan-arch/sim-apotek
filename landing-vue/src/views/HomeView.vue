@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen bg-slate-50 font-sans text-slate-800">
     <!-- <TopBar /> -->
-    <Navbar />
+    <Navbar @change-page="$emit('change-page', $event)" />
     <HeroBanner />
     <CategoryGrid />
-    <ProductGrid />
+    <ProductGrid @change-page="$emit('change-page', $event)" />
     <Footer />
   </div>
 </template>

@@ -30,15 +30,15 @@
       <!-- Right Mene-->
       <!-- Akun -->
       <div class="flex items-center gap-4 shrink-0">
-        <button class="flex items-center gap-2 text-slate-700 hover:text-emerald-700 text-sm font-medium">
+        <!-- <button class="flex items-center gap-2 text-slate-700 hover:text-emerald-700 text-sm font-medium">
           <User class="w-5 h-5" />
           <div class="sm:block text-left text-xs leading-tight">
             <span class="block text-slate-400 text-[10px]">{{ $t("nav.signIn") }}</span>
             <span class="font-bold">{{ $t("nav.account") }}</span>
           </div>
-        </button>
+        </button> -->
         <!-- keranjang -->
-        <button class="relative flex items-center justify-center p-2 bg-emerald-50 text-emerald-800 rounded-full hover:bg-emerald-100">
+        <button type="button" @click="$emit('change-page', 'cart')" class="relative flex items-center justify-center p-2 bg-emerald-50 text-emerald-800 rounded-full hover:bg-emerald-100">
           <ShoppingBag class="w-5 h-5" />
           <span class="absolute -top-1 -right-1 bg-emerald-700 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
         </button>

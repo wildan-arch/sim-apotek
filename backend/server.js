@@ -1,34 +1,27 @@
-require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const connectDB = require("./config/db");
+
 const pembelianRoutes = require("./routes/pembelianRoutes");
 const penjualanRoutes = require("./routes/penjualanRoutes");
 const tipeBarangRoutes = require("./routes/tipeBarangRoutes");
 const authRoutes = require("./routes/authRoutes");
+// Ubah L kecil/besar sesuai persis dengan nama file di folder routes/
+const landingRoutes = require("./routes/LandingRoutes");
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "*", // Membuka akses dari HP maupun Laptop
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-user-role"],
-  }),
-);
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+// 1. PINDAHKAN CORS & JSON PARSER KE ATAS (Sebelum Route)
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// MEMBUAT FOLDER ASSETS BISA DIAKSES PUBLIK VIA URL
-app.use("/assets", express.static(path.join(__dirname, "assets")));
+// 2. Folder Statis Upload
+app.use("/uploads", express.static("uploads"));
 
-connectDB();
-
-// Routes API
-app.use("/api/kategori", require("./routes/kategoriRoutes"));
-app.use("/api/satuan", require("./routes/satuanRoutes"));
-app.use("/api/obat", require("./routes/obatRoutes"));
+// 3. DAFTARKAN ROUTE API DI BAWAH CORS
+app.use("/api/landing", landingRoutes);
 app.use("/api/pembelian", pembelianRoutes);
 app.use("/api/penjualan", penjualanRoutes);
 app.use("/api/tipe-barang", tipeBarangRoutes);

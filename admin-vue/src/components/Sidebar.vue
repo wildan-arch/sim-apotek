@@ -12,14 +12,14 @@
       </svg>
     </button>
 
-    <!-- BAGIAN ATAS: Logo & Profil (Fixed, Tidak ikut ter-scroll) -->
+    <!-- BAGIAN ATAS: Logo & Profil -->
     <div class="shrink-0">
       <div :class="['flex items-center text-lg font-bold mb-3 transition-all duration-300', isCollapsed ? 'justify-center' : 'gap-3 px-1']">
         <Pill class="w-6 h-6 text-teal-300 shrink-0" />
         <span v-if="!isCollapsed" class="whitespace-nowrap overflow-hidden">Apotek Shabah</span>
       </div>
 
-      <!-- PROFIL USER WIDGET (Dibuat lebih compact/padat) -->
+      <!-- PROFIL USER WIDGET -->
       <div class="px-2.5 py-2 mb-3 bg-teal-800/60 rounded-xl flex items-center gap-2.5 cursor-pointer hover:bg-teal-800 transition" @click="$emit('gantiMenu', 'profile')">
         <div class="w-8 h-8 bg-teal-600 text-white rounded-lg flex items-center justify-center font-bold text-xs shrink-0">
           {{ userInitial }}
@@ -32,7 +32,6 @@
       <hr class="border-teal-700/60 mb-2" />
     </div>
 
-    <!-- BAGIAN TENGAH: Menu Navigasi (Bisa di-scroll halus jika layar kecil, tapi scrollbar disembunyikan) -->
     <!-- BAGIAN TENGAH: Menu Navigasi -->
     <div class="flex-1 overflow-y-auto scrollbar-none space-y-1.5 pr-1">
       <nav class="space-y-1.5">
@@ -143,7 +142,7 @@
           </div>
         </div>
 
-        <!-- 5. MENU HUTANG USAHA (Bisa diakses kasir/owner atau batasi juga jika khusus owner) -->
+        <!-- 5. MENU HUTANG USAHA -->
         <button
           @click="$emit('bukaMenuHutang')"
           :title="isCollapsed ? 'Hutang Usaha' : ''"
@@ -157,7 +156,52 @@
           <span v-if="!isCollapsed" class="whitespace-nowrap">Hutang Usaha</span>
         </button>
 
-        <!-- 6. MENU ACCORDION: PENGATURAN APOTEK (KHUSUS OWNER) -->
+        <!-- 6. MENU ACCORDION: KELOLA LANDING PAGE (KHUSUS OWNER) -->
+        <div v-if="role === 'owner'">
+          <button
+            type="button"
+            @click="handleToggleLanding"
+            :title="isCollapsed ? 'Kelola Landing Page' : ''"
+            :class="[
+              'w-full flex items-center rounded-lg font-medium transition cursor-pointer text-xs',
+              isCollapsed ? 'justify-center p-2.5' : 'justify-between px-3.5 py-2.5',
+              ['landing-hero', 'landing-promo', 'landing-banner'].includes(menuAktif) ? 'bg-teal-700 text-white font-bold' : 'text-teal-100 hover:bg-teal-700/70',
+            ]"
+          >
+            <div :class="['flex items-center', isCollapsed ? 'justify-center' : 'gap-3']">
+              <Megaphone class="w-4 h-4 shrink-0" />
+              <span v-if="!isCollapsed" class="whitespace-nowrap">Kelola Landing Page</span>
+            </div>
+            <ChevronDown v-if="!isCollapsed" class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="{ 'rotate-180': isMenuLandingOpen }" />
+          </button>
+
+          <!-- Submenu Landing Page -->
+          <div v-show="isMenuLandingOpen && !isCollapsed" class="mt-1 pl-5 space-y-1">
+            <button
+              type="button"
+              @click="$emit('gantiMenu', 'landing-hero')"
+              :class="[
+                'w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium transition cursor-pointer flex items-center gap-2',
+                menuAktif === 'landing-hero' ? 'bg-teal-600 text-white font-bold' : 'text-teal-100 hover:bg-teal-700/50',
+              ]"
+            >
+              <Globe class="w-3.5 h-3.5 shrink-0" /> <span class="whitespace-nowrap">Hero & Tagline</span>
+            </button>
+
+            <button
+              type="button"
+              @click="$emit('gantiMenu', 'landing-promo')"
+              :class="[
+                'w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium transition cursor-pointer flex items-center gap-2',
+                menuAktif === 'landing-promo' ? 'bg-teal-600 text-white font-bold' : 'text-teal-100 hover:bg-teal-700/50',
+              ]"
+            >
+              <Image class="w-3.5 h-3.5 shrink-0" /> <span class="whitespace-nowrap">Banner & Promo</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 7. MENU ACCORDION: PENGATURAN APOTEK (KHUSUS OWNER) -->
         <div v-if="role === 'owner'">
           <button
             type="button"
@@ -190,24 +234,10 @@
             </button>
           </div>
         </div>
-
-        <!-- 7. STATUS WA APOTEK -->
-        <!-- <button
-          @click="$emit('bukaPengaturanWA')"
-          type="button"
-          :title="isCollapsed ? 'Status WA Apotek' : ''"
-          :class="[
-            'w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-bold rounded-lg text-[11px] flex items-center transition cursor-pointer',
-            isCollapsed ? 'justify-center p-2.5' : 'justify-center gap-1.5 px-3 py-2',
-          ]"
-        >
-          <span class="text-sm shrink-0">📱</span>
-          <span v-if="!isCollapsed" class="whitespace-nowrap">Status WA Apotek</span>
-        </button> -->
       </nav>
     </div>
 
-    <!-- BAGIAN BAWAH: Tombol Logout (Fixed di bawah, tidak ikut ter-scroll) -->
+    <!-- BAGIAN BAWAH: Tombol Logout -->
     <div class="shrink-0 pt-2 border-t border-teal-700/50 mt-1">
       <button
         @click="isModalConfirmOpen = true"
@@ -219,6 +249,7 @@
       </button>
     </div>
   </aside>
+
   <Teleport to="body">
     <ConfirmModal :isOpen="isModalConfirmOpen" title="Konfirmasi Keluar" message="Apakah Anda yakin ingin keluar?" @konfirmasi="handleConfirmLogout" @batal="isModalConfirmOpen = false" />
   </Teleport>
@@ -226,7 +257,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { Pill, LayoutDashboard, ShoppingCart, FileText, CreditCard, LogOut, ChevronDown, Users } from "@lucide/vue";
+import { Pill, LayoutDashboard, ShoppingCart, FileText, CreditCard, LogOut, ChevronDown, Users, Megaphone, Globe, Image } from "@lucide/vue";
 import { useSettingStore } from "@/stores/settingStore";
 import ModalSettingApotek from "@/components/modals/ModalSettingApotek.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -246,10 +277,10 @@ const showModalSetting = ref(false);
 // Default sidebar dalam kondisi menciut (collapse)
 const isCollapsed = ref(true);
 
-// State untuk mengontrol buka/tutup accordion menu laporan
+// State untuk mengontrol buka/tutup accordion
 const isMenuLaporanOpen = ref(false);
-
 const isMenuPengaturanOpen = ref(false);
+const isMenuLandingOpen = ref(false); // State baru accordion Landing Page
 
 defineProps({
   menuAktif: {
@@ -265,24 +296,30 @@ const bukaModal = () => {
   emit("open-setting");
 };
 
-// 🎯 FUNGSI HANDLER TOGGLE LAPORAN (TAMBAHKAN BAGIAN INI!)
+// HANDLER TOGGLE LAPORAN
 const handleToggleLaporan = () => {
-  // 1. Jika sidebar sedang menciut, otomatis buka sidebar dulu agar submenu kelihatan
   if (isCollapsed.value) {
     isCollapsed.value = false;
     isMenuLaporanOpen.value = true;
   } else {
-    // 2. Jika sidebar sudah terbuka, toggle buka/tutup accordion
     isMenuLaporanOpen.value = !isMenuLaporanOpen.value;
   }
-
-  // 3. 🚀 Pindah halaman ke Laporan Penjualan saat tombol induk diklik
   emit("gantiMenu", "laporan-penjualan");
+};
+
+// HANDLER TOGGLE KELOLA LANDING PAGE
+const handleToggleLanding = () => {
+  if (isCollapsed.value) {
+    isCollapsed.value = false;
+    isMenuLandingOpen.value = true;
+  } else {
+    isMenuLandingOpen.value = !isMenuLandingOpen.value;
+  }
+  emit("gantiMenu", "landing-hero");
 };
 
 const handleConfirmLogout = () => {
   isModalConfirmOpen.value = false;
-  // Emit ke komponen induk (App.vue) untuk benar-benar logout
   emit("logout");
 };
 </script>

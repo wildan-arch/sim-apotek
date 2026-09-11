@@ -47,6 +47,9 @@
 
       <ProfileView v-if="menuAktif === 'profile'" />
 
+      <LandingHeroView v-if="menuAktif === 'landing-hero'" />
+      <LandingPromoView v-else-if="menuAktif === 'landing-promo'" />
+
       <!-- ========================================== -->
       <!-- MODAL-MODAL GLOBAL -->
       <!-- ========================================== -->
@@ -75,6 +78,8 @@ import KasirView from "@/views/KasirView.vue";
 import HutangView from "@/views/HutangView.vue";
 import LaporanPenjualanView from "@/views/LaporanPenjualanView.vue";
 import LaporanPembelianView from "@/views/LaporanPembelianView.vue";
+import LandingHeroView from "@/views/landing/LandingHeroView.vue";
+import LandingPromoView from "@/views/landing/LandingPromoView.vue";
 
 // IMPORT MODALS
 import ModalObatMaster from "@/components/modals/ModalObatMaster.vue";

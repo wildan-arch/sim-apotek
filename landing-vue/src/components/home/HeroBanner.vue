@@ -6,22 +6,22 @@
         <div class="inline-flex items-center gap-1.5 bg-emerald-900 text-white text-[11px] font-semibold px-3 py-1 rounded-full"><HeartPulse class="w-3.5 h-3.5 text-emerald-400" />{{ $t("hero.tagline") }}</div>
         <h1 class="text-4xl md:text-5xl font-black text-emerald-950 leading-tight">{{ $t("hero.title") }}</h1>
         <p class="text-slate-600 text-sm max-w-md">{{ $t("hero.subtitle") }}</p>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-10 pt-4 font-semibold text-slate-600 bg-teal-500/10 px-4 py-2 rounded-lg">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-8 mt-8 sm:p-10 font-semibold text-slate-600 bg-teal-50 px-4 p-2 rounded-lg">
           <div class="flex flex-col items-center text-center gap-1">
-            <ShieldPlus class="w-8 h-8 text-emerald-600" />
-            <span>{{ $t("hero.original") }}</span>
+            <ShieldPlus class="w-6 h-6 sm:w-12 sm:h-12 text-emerald-600" />
+            <span class="text-xs">{{ $t("hero.original") }}</span>
           </div>
           <div class="flex flex-col items-center text-center gap-1">
-            <Truck class="w-8 h-8 text-emerald-600" />
-            <span>{{ $t("hero.fastDelivery") }}</span>
+            <Truck class="w-6 h-6 sm:w-12 sm:h-12 text-emerald-600" />
+            <span class="text-xs">{{ $t("hero.fastDelivery") }}</span>
           </div>
           <div class="flex flex-col items-center text-center gap-1">
-            <LockKeyhole class="w-8 h-8 text-emerald-600" />
-            <span>{{ $t("hero.securePayments") }}</span>
+            <LockKeyhole class="w-6 h-6 sm:w-12 sm:h-12 text-emerald-600" />
+            <span class="text-xs">{{ $t("hero.securePayments") }}</span>
           </div>
           <div class="flex flex-col items-center text-center gap-1">
-            <Headset class="w-8 h-8 text-emerald-600" />
-            <span>{{ $t("hero.support") }}</span>
+            <Headset class="w-6 h-6 sm:w-12 sm:h-12 text-emerald-600" />
+            <span class="text-xs">{{ $t("hero.support") }}</span>
           </div>
         </div>
 

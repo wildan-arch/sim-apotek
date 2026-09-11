@@ -53,6 +53,13 @@ const messages = {
       babyCare: "Perawatan Bayi",
       diabetesCare: "Perawatan Diabetes",
       healthDevices: "Alat Kesehatan",
+      // BAGIAN KATEGORI HALAMAN PRODUCTS(PRODUCTVIEW.VUE)
+      placeholderInput: "Cari obat, produk kesehatan...",
+      all: "Semua",
+      fever: "Demam & Nyeri",
+      herbal: "Herbal",
+      allergy: "Alergi",
+      nutrition: "Nutrisi",
     },
   },
 
@@ -104,6 +111,13 @@ const messages = {
       babyCare: "Baby Care",
       diabetesCare: "Diabetes Care",
       healthDevices: "Health Devices",
+      // BAGIAN KATEGORI HALAMAN PRODUCTS(PRODUCTVIEW.VUE)
+      placeholderInput: "Search medicines, health products...",
+      all: "All",
+      fever: "Fever",
+      herbal: "Herbal",
+      allergy: "Allergy",
+      nutrition: "Nutrition",
     },
 
     products: {
